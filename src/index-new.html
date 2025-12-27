@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Web Studio - Editor en Tiempo Real</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="studio-container">
+        <!-- Top Menu Bar (Unreal Engine Style) -->
+        <header class="menu-bar">
+            <div class="menu-left">
+                <div class="logo">
+                    <i class="fas fa-layer-group"></i>
+                    <span>Visual Web Studio</span>
+                </div>
+                <nav class="menu-items">
+                    <div class="menu-item" data-menu="file">
+                        <span>Archivo</span>
+                        <div class="dropdown">
+                            <button><i class="fas fa-file-plus"></i> Nuevo Proyecto</button>
+                            <button><i class="fas fa-folder-open"></i> Abrir</button>
+                            <button><i class="fas fa-save"></i> Guardar</button>
+                            <div class="divider"></div>
+                            <button id="menu-export"><i class="fas fa-download"></i> Exportar HTML</button>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-menu="edit">
+                        <span>Editar</span>
+                        <div class="dropdown">
+                            <button id="menu-undo"><i class="fas fa-undo"></i> Deshacer <kbd>Ctrl+Z</kbd></button>
+                            <button id="menu-redo"><i class="fas fa-redo"></i> Rehacer <kbd>Ctrl+Y</kbd></button>
+                            <div class="divider"></div>
+                            <button><i class="fas fa-copy"></i> Copiar <kbd>Ctrl+C</kbd></button>
+                            <button><i class="fas fa-paste"></i> Pegar <kbd>Ctrl+V</kbd></button>
+                            <button><i class="fas fa-trash"></i> Eliminar <kbd>Del</kbd></button>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-menu="view">
+                        <span>Vista</span>
+                        <div class="dropdown">
+                            <button id="menu-single-view"><i class="fas fa-square"></i> Vista Única</button>
+                            <button id="menu-split-view"><i class="fas fa-th-large"></i> 4 Vistas</button>
+                            <div class="divider"></div>
+                            <button id="menu-toggle-grid"><i class="fas fa-border-all"></i> Mostrar Grid</button>
+                            <button id="menu-toggle-rulers"><i class="fas fa-ruler-combined"></i> Mostrar Reglas</button>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-menu="frameworks">
+                        <span>Frameworks</span>
+                        <div class="dropdown frameworks-dropdown">
+                            <div class="framework-section">
+                                <h5>CSS Frameworks</h5>
+                                <label><input type="checkbox" value="bootstrap" class="fw-check"> Bootstrap 5</label>
+                                <label><input type="checkbox" value="tailwind" class="fw-check"> Tailwind CSS</label>
+                                <label><input type="checkbox" value="bulma" class="fw-check"> Bulma</label>
+                                <label><input type="checkbox" value="foundation" class="fw-check"> Foundation</label>
+                                <label><input type="checkbox" value="semantic" class="fw-check"> Semantic UI</label>
+                                <label><input type="checkbox" value="uikit" class="fw-check"> UIkit</label>
+                                <label><input type="checkbox" value="materialize" class="fw-check"> Materialize</label>
+                                <label><input type="checkbox" value="skeleton" class="fw-check"> Skeleton</label>
+                            </div>
+                            <div class="framework-section">
+                                <h5>Animaciones</h5>
+                                <label><input type="checkbox" value="animate" class="fw-check"> Animate.css</label>
+                                <label><input type="checkbox" value="aos" class="fw-check"> AOS</label>
+                                <label><input type="checkbox" value="gsap" class="fw-check"> GSAP</label>
+                            </div>
+                            <div class="framework-section">
+                                <h5>Iconos</h5>
+                                <label><input type="checkbox" value="fontawesome" class="fw-check" checked> Font Awesome</label>
+                                <label><input type="checkbox" value="bootstrap-icons" class="fw-check"> Bootstrap Icons</label>
+                                <label><input type="checkbox" value="lucide" class="fw-check"> Lucide Icons</label>
+                                <label><input type="checkbox" value="heroicons" class="fw-check"> Heroicons</label>
+                            </div>
+                            <div class="framework-section">
+                                <h5>JavaScript</h5>
+                                <label><input type="checkbox" value="jquery" class="fw-check"> jQuery</label>
+                                <label><input type="checkbox" value="alpinejs" class="fw-check"> Alpine.js</label>
+                                <label><input type="checkbox" value="htmx" class="fw-check"> HTMX</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-menu="help">
+                        <span>Ayuda</span>
+                        <div class="dropdown">
+                            <button><i class="fas fa-keyboard"></i> Atajos de Teclado</button>
+                            <button><i class="fas fa-book"></i> Documentación</button>
+                            <div class="divider"></div>
+                            <button><i class="fas fa-info-circle"></i> Acerca de</button>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+            <div class="menu-center">
+                <div class="project-name">
+                    <i class="fas fa-file-code"></i>
+                    <span contenteditable="true">Mi Proyecto</span>
+                </div>
+            </div>
+            <div class="menu-right">
+                <button class="btn-action" id="btn-preview" title="Vista Previa">
+                    <i class="fas fa-play"></i>
+                </button>
+                <button class="btn-action primary" id="btn-export">
+                    <i class="fas fa-rocket"></i>
+                    <span>Publicar</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Secondary Toolbar -->
+        <div class="toolbar-secondary">
+            <div class="tool-group">
+                <button class="tool-btn active" id="tool-select" title="Seleccionar (V)">
+                    <i class="fas fa-mouse-pointer"></i>
+                </button>
+                <button class="tool-btn" id="tool-move" title="Mover (M)">
+                    <i class="fas fa-arrows-alt"></i>
+                </button>
+                <button class="tool-btn" id="tool-resize" title="Redimensionar (R)">
+                    <i class="fas fa-expand-arrows-alt"></i>
+                </button>
+            </div>
+            <div class="separator"></div>
+            <div class="tool-group">
+                <button class="tool-btn" id="tool-text" title="Texto (T)">
+                    <i class="fas fa-font"></i>
+                </button>
+                <button class="tool-btn" id="tool-shape" title="Forma (S)">
+                    <i class="fas fa-shapes"></i>
+                </button>
+                <button class="tool-btn" id="tool-image" title="Imagen (I)">
+                    <i class="fas fa-image"></i>
+                </button>
+            </div>
+            <div class="separator"></div>
+            <div class="tool-group">
+                <button class="tool-btn" id="btn-undo" title="Deshacer (Ctrl+Z)">
+                    <i class="fas fa-undo"></i>
+                </button>
+                <button class="tool-btn" id="btn-redo" title="Rehacer (Ctrl+Y)">
+                    <i class="fas fa-redo"></i>
+                </button>
+            </div>
+            <div class="separator"></div>
+            <div class="zoom-controls">
+                <button class="tool-btn" id="zoom-out"><i class="fas fa-minus"></i></button>
+                <span class="zoom-level">100%</span>
+                <button class="tool-btn" id="zoom-in"><i class="fas fa-plus"></i></button>
+                <button class="tool-btn" id="zoom-fit"><i class="fas fa-compress-arrows-alt"></i></button>
+            </div>
+            <div class="flex-spacer"></div>
+            <div class="view-controls">
+                <button class="view-btn active" id="view-single" title="Vista Única">
+                    <i class="fas fa-square"></i>
+                </button>
+                <button class="view-btn" id="view-split-h" title="División Horizontal">
+                    <i class="fas fa-columns"></i>
+                </button>
+                <button class="view-btn" id="view-split-4" title="4 Vistas">
+                    <i class="fas fa-th-large"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Workspace -->
+        <div class="workspace">
+            <!-- Left Panel - Components & Layers -->
+            <aside class="panel panel-left">
+                <div class="panel-tabs">
+                    <button class="panel-tab active" data-panel="components">
+                        <i class="fas fa-puzzle-piece"></i>
+                        <span>Componentes</span>
+                    </button>
+                    <button class="panel-tab" data-panel="layers">
+                        <i class="fas fa-layer-group"></i>
+                        <span>Capas</span>
+                    </button>
+                    <button class="panel-tab" data-panel="assets">
+                        <i class="fas fa-images"></i>
+                        <span>Assets</span>
+                    </button>
+                </div>
+                
+                <!-- Components Panel -->
+                <div class="panel-content" id="panel-components">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Buscar componentes..." id="search-components">
+                    </div>
+                    
+                    <div class="component-section">
+                        <div class="section-header">
+                            <i class="fas fa-chevron-down"></i>
+                            <span>Layout</span>
+                        </div>
+                        <div class="component-grid">
+                            <div class="component-item" draggable="true" data-type="container">
+                                <i class="fas fa-box"></i>
+                                <span>Container</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="row">
+                                <i class="fas fa-grip-lines"></i>
+                                <span>Row</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="column">
+                                <i class="fas fa-columns"></i>
+                                <span>Column</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="section">
+                                <i class="fas fa-layer-group"></i>
+                                <span>Section</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="div">
+                                <i class="fas fa-square"></i>
+                                <span>Div</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="flexbox">
+                                <i class="fas fa-arrows-alt-h"></i>
+                                <span>Flexbox</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="grid">
+                                <i class="fas fa-th"></i>
+                                <span>CSS Grid</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="component-section">
+                        <div class="section-header">
+                            <i class="fas fa-chevron-down"></i>
+                            <span>Tipografía</span>
+                        </div>
+                        <div class="component-grid">
+                            <div class="component-item" draggable="true" data-type="heading">
+                                <i class="fas fa-heading"></i>
+                                <span>Título</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="paragraph">
+                                <i class="fas fa-paragraph"></i>
+                                <span>Párrafo</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="text">
+                                <i class="fas fa-font"></i>
+                                <span>Texto</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="link">
+                                <i class="fas fa-link"></i>
+                                <span>Enlace</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="list">
+                                <i class="fas fa-list"></i>
+                                <span>Lista</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="blockquote">
+                                <i class="fas fa-quote-left"></i>
+                                <span>Cita</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="component-section">
+                        <div class="section-header">
+                            <i class="fas fa-chevron-down"></i>
+                            <span>Formularios</span>
+                        </div>
+                        <div class="component-grid">
+                            <div class="component-item" draggable="true" data-type="form">
+                                <i class="fas fa-file-alt"></i>
+                                <span>Form</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="input">
+                                <i class="fas fa-i-cursor"></i>
+                                <span>Input</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="textarea">
+                                <i class="fas fa-align-left"></i>
+                                <span>Textarea</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="select">
+                                <i class="fas fa-caret-square-down"></i>
+                                <span>Select</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="checkbox">
+                                <i class="fas fa-check-square"></i>
+                                <span>Checkbox</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="radio">
+                                <i class="fas fa-dot-circle"></i>
+                                <span>Radio</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="button">
+                                <i class="fas fa-hand-pointer"></i>
+                                <span>Botón</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="component-section">
+                        <div class="section-header">
+                            <i class="fas fa-chevron-down"></i>
+                            <span>Media</span>
+                        </div>
+                        <div class="component-grid">
+                            <div class="component-item" draggable="true" data-type="image">
+                                <i class="fas fa-image"></i>
+                                <span>Imagen</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="video">
+                                <i class="fas fa-video"></i>
+                                <span>Video</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="audio">
+                                <i class="fas fa-music"></i>
+                                <span>Audio</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="iframe">
+                                <i class="fas fa-window-maximize"></i>
+                                <span>iFrame</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="icon">
+                                <i class="fas fa-icons"></i>
+                                <span>Icono</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="svg">
+                                <i class="fas fa-bezier-curve"></i>
+                                <span>SVG</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="component-section">
+                        <div class="section-header">
+                            <i class="fas fa-chevron-down"></i>
+                            <span>Componentes UI</span>
+                        </div>
+                        <div class="component-grid">
+                            <div class="component-item" draggable="true" data-type="navbar">
+                                <i class="fas fa-bars"></i>
+                                <span>Navbar</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="card">
+                                <i class="fas fa-id-card"></i>
+                                <span>Card</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="modal">
+                                <i class="fas fa-window-restore"></i>
+                                <span>Modal</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="carousel">
+                                <i class="fas fa-images"></i>
+                                <span>Carousel</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="tabs">
+                                <i class="fas fa-folder"></i>
+                                <span>Tabs</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="accordion">
+                                <i class="fas fa-stream"></i>
+                                <span>Accordion</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="footer">
+                                <i class="fas fa-shoe-prints"></i>
+                                <span>Footer</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="hero">
+                                <i class="fas fa-star"></i>
+                                <span>Hero</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Layers Panel -->
+                <div class="panel-content hidden" id="panel-layers">
+                    <div class="layers-toolbar">
+                        <button class="icon-btn" title="Nueva Capa"><i class="fas fa-plus"></i></button>
+                        <button class="icon-btn" title="Agrupar"><i class="fas fa-object-group"></i></button>
+                        <button class="icon-btn" title="Eliminar"><i class="fas fa-trash"></i></button>
+                    </div>
+                    <div class="layers-tree" id="layers-tree">
+                        <div class="layer-empty">
+                            <i class="fas fa-layer-group"></i>
+                            <p>Arrastra elementos al canvas</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assets Panel -->
+                <div class="panel-content hidden" id="panel-assets">
+                    <div class="assets-toolbar">
+                        <button class="icon-btn" title="Subir"><i class="fas fa-upload"></i></button>
+                        <button class="icon-btn" title="Carpeta"><i class="fas fa-folder-plus"></i></button>
+                    </div>
+                    <div class="assets-grid">
+                        <div class="asset-empty">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Arrastra archivos aquí</p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Editor Area with 4 Views -->
+            <main class="editor-main">
+                <div class="viewports-container" id="viewports">
+                    <!-- Single View (Default) -->
+                    <div class="viewport active" id="viewport-main" data-view="desktop">
+                        <div class="viewport-header">
+                            <span class="viewport-title"><i class="fas fa-desktop"></i> Editor Principal</span>
+                            <div class="viewport-actions">
+                                <select class="viewport-device">
+                                    <option value="desktop">Desktop (1920px)</option>
+                                    <option value="laptop">Laptop (1366px)</option>
+                                    <option value="tablet">Tablet (768px)</option>
+                                    <option value="mobile">Mobile (375px)</option>
+                                </select>
+                                <button class="icon-btn" title="Maximizar"><i class="fas fa-expand"></i></button>
+                            </div>
+                        </div>
+                        <div class="viewport-content">
+                            <div class="canvas-container">
+                                <div class="ruler ruler-h"></div>
+                                <div class="ruler ruler-v"></div>
+                                <div class="canvas" id="canvas-main">
+                                    <div class="canvas-placeholder">
+                                        <i class="fas fa-mouse-pointer"></i>
+                                        <h3>Arrastra componentes aquí</h3>
+                                        <p>o haz doble clic para agregar texto</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preview Views (Hidden by default, shown in split mode) -->
+                    <div class="viewport" id="viewport-tablet" data-view="tablet">
+                        <div class="viewport-header">
+                            <span class="viewport-title"><i class="fas fa-tablet-alt"></i> Tablet Preview</span>
+                            <div class="viewport-actions">
+                                <span class="viewport-size">768px</span>
+                                <button class="icon-btn" title="Actualizar"><i class="fas fa-sync-alt"></i></button>
+                            </div>
+                        </div>
+                        <div class="viewport-content">
+                            <iframe class="preview-frame" id="preview-tablet"></iframe>
+                        </div>
+                    </div>
+
+                    <div class="viewport" id="viewport-mobile" data-view="mobile">
+                        <div class="viewport-header">
+                            <span class="viewport-title"><i class="fas fa-mobile-alt"></i> Mobile Preview</span>
+                            <div class="viewport-actions">
+                                <span class="viewport-size">375px</span>
+                                <button class="icon-btn" title="Actualizar"><i class="fas fa-sync-alt"></i></button>
+                            </div>
+                        </div>
+                        <div class="viewport-content">
+                            <iframe class="preview-frame" id="preview-mobile"></iframe>
+                        </div>
+                    </div>
+
+                    <div class="viewport" id="viewport-code" data-view="code">
+                        <div class="viewport-header">
+                            <span class="viewport-title"><i class="fas fa-code"></i> Código en Vivo</span>
+                            <div class="viewport-actions">
+                                <div class="code-tabs-mini">
+                                    <button class="code-tab-mini active" data-lang="html">HTML</button>
+                                    <button class="code-tab-mini" data-lang="css">CSS</button>
+                                    <button class="code-tab-mini" data-lang="js">JS</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="viewport-content">
+                            <div class="code-editor-container">
+                                <pre class="code-display" id="code-display"><code></code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Status Bar -->
+                <div class="status-bar">
+                    <div class="status-left">
+                        <span class="status-item"><i class="fas fa-mouse-pointer"></i> <span id="status-selected">Nada seleccionado</span></span>
+                        <span class="status-item"><i class="fas fa-th"></i> Grid: <span id="status-grid">ON</span></span>
+                    </div>
+                    <div class="status-center">
+                        <span class="status-item" id="status-position">X: 0 Y: 0</span>
+                        <span class="status-item" id="status-size">W: 0 H: 0</span>
+                    </div>
+                    <div class="status-right">
+                        <span class="status-item"><i class="fas fa-layer-group"></i> <span id="status-elements">0</span> elementos</span>
+                        <span class="status-item"><i class="fas fa-clock"></i> Guardado automático</span>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Right Panel - Properties -->
+            <aside class="panel panel-right">
+                <div class="panel-tabs">
+                    <button class="panel-tab active" data-panel="design">
+                        <i class="fas fa-palette"></i>
+                        <span>Diseño</span>
+                    </button>
+                    <button class="panel-tab" data-panel="code">
+                        <i class="fas fa-code"></i>
+                        <span>Código</span>
+                    </button>
+                </div>
+
+                <div class="panel-content" id="panel-design">
+                    <div class="no-selection" id="no-selection">
+                        <i class="fas fa-mouse-pointer"></i>
+                        <p>Selecciona un elemento para editar sus propiedades</p>
+                    </div>
+
+                    <div class="properties-editor hidden" id="properties-editor">
+                        <!-- Element Info -->
+                        <div class="prop-section">
+                            <div class="prop-header">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Elemento</span>
+                            </div>
+                            <div class="prop-content">
+                                <div class="prop-row">
+                                    <label>Tipo</label>
+                                    <span class="prop-value" id="prop-type">div</span>
+                                </div>
+                                <div class="prop-row">
+                                    <label>ID</label>
+                                    <input type="text" id="prop-id" placeholder="mi-elemento">
+                                </div>
+                                <div class="prop-row">
+                                    <label>Clase</label>
+                                    <input type="text" id="prop-class" placeholder="clase1 clase2">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Layout -->
+                        <div class="prop-section">
+                            <div class="prop-header">
+                                <i class="fas fa-ruler-combined"></i>
+                                <span>Layout</span>
+                            </div>
+                            <div class="prop-content">
+                                <div class="prop-row-grid">
+                                    <div class="prop-field">
+                                        <label>W</label>
+                                        <input type="text" id="prop-width" value="auto">
+                                    </div>
+                                    <div class="prop-field">
+                                        <label>H</label>
+                                        <input type="text" id="prop-height" value="auto">
+                                    </div>
+                                </div>
+                                <div class="prop-row">
+                                    <label>Display</label>
+                                    <select id="prop-display">
+                                        <option value="block">Block</option>
+                                        <option value="flex">Flex</option>
+                                        <option value="grid">Grid</option>
+                                        <option value="inline">Inline</option>
+                                        <option value="inline-block">Inline Block</option>
+                                        <option value="none">None</option>
+                                    </select>
+                                </div>
+                                <div class="prop-row">
+                                    <label>Position</label>
+                                    <select id="prop-position">
+                                        <option value="static">Static</option>
+                                        <option value="relative">Relative</option>
+                                        <option value="absolute">Absolute</option>
+                                        <option value="fixed">Fixed</option>
+                                        <option value="sticky">Sticky</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Spacing -->
+                        <div class="prop-section">
+                            <div class="prop-header">
+                                <i class="fas fa-expand-arrows-alt"></i>
+                                <span>Espaciado</span>
+                            </div>
+                            <div class="prop-content">
+                                <div class="spacing-visual">
+                                    <div class="spacing-label">Margin</div>
+                                    <div class="spacing-box margin-box">
+                                        <input type="number" class="spacing-input top" id="margin-top" value="0">
+                                        <input type="number" class="spacing-input right" id="margin-right" value="0">
+                                        <input type="number" class="spacing-input bottom" id="margin-bottom" value="0">
+                                        <input type="number" class="spacing-input left" id="margin-left" value="0">
+                                        <div class="spacing-inner">
+                                            <div class="spacing-label">Padding</div>
+                                            <div class="spacing-box padding-box">
+                                                <input type="number" class="spacing-input top" id="padding-top" value="0">
+                                                <input type="number" class="spacing-input right" id="padding-right" value="0">
+                                                <input type="number" class="spacing-input bottom" id="padding-bottom" value="0">
+                                                <input type="number" class="spacing-input left" id="padding-left" value="0">
+                                                <div class="spacing-center">
+                                                    <span>Contenido</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Typography -->
+                        <div class="prop-section">
+                            <div class="prop-header">
+                                <i class="fas fa-font"></i>
+                                <span>Tipografía</span>
+                            </div>
+                            <div class="prop-content">
+                                <div class="prop-row">
+                                    <label>Fuente</label>
+                                    <select id="prop-font">
+                                        <option value="Inter">Inter</option>
+                                        <option value="Arial">Arial</option>
+                                        <option value="Helvetica">Helvetica</option>
+                                        <option value="Georgia">Georgia</option>
+                                        <option value="Times New Roman">Times New Roman</option>
+                                        <option value="Roboto">Roboto</option>
+                                        <option value="Open Sans">Open Sans</option>
+                                        <option value="Montserrat">Montserrat</option>
+                                    </select>
+                                </div>
+                                <div class="prop-row-grid">
+                                    <div class="prop-field">
+                                        <label>Tamaño</label>
+                                        <input type="number" id="prop-font-size" value="16">
+                                    </div>
+                                    <div class="prop-field">
+                                        <label>Peso</label>
+                                        <select id="prop-font-weight">
+                                            <option value="300">Light</option>
+                                            <option value="400" selected>Regular</option>
+                                            <option value="500">Medium</option>
+                                            <option value="600">Semi Bold</option>
+                                            <option value="700">Bold</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="prop-row">
+                                    <label>Color</label>
+                                    <div class="color-input">
+                                        <input type="color" id="prop-color" value="#000000">
+                                        <input type="text" id="prop-color-hex" value="#000000">
+                                    </div>
+                                </div>
+                                <div class="prop-row">
+                                    <label>Alineación</label>
+                                    <div class="btn-group">
+                                        <button class="icon-btn" data-align="left"><i class="fas fa-align-left"></i></button>
+                                        <button class="icon-btn" data-align="center"><i class="fas fa-align-center"></i></button>
+                                        <button class="icon-btn" data-align="right"><i class="fas fa-align-right"></i></button>
+                                        <button class="icon-btn" data-align="justify"><i class="fas fa-align-justify"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Background -->
+                        <div class="prop-section">
+                            <div class="prop-header">
+                                <i class="fas fa-fill-drip"></i>
+                                <span>Fondo</span>
+                            </div>
+                            <div class="prop-content">
+                                <div class="prop-row">
+                                    <label>Tipo</label>
+                                    <select id="prop-bg-type">
+                                        <option value="color">Color</option>
+                                        <option value="gradient">Gradiente</option>
+                                        <option value="image">Imagen</option>
+                                    </select>
+                                </div>
+                                <div class="prop-row">
+                                    <label>Color</label>
+                                    <div class="color-input">
+                                        <input type="color" id="prop-bg-color" value="#ffffff">
+                                        <input type="text" id="prop-bg-color-hex" value="#ffffff">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Border -->
+                        <div class="prop-section">
+                            <div class="prop-header">
+                                <i class="fas fa-border-style"></i>
+                                <span>Borde</span>
+                            </div>
+                            <div class="prop-content">
+                                <div class="prop-row-grid">
+                                    <div class="prop-field">
+                                        <label>Ancho</label>
+                                        <input type="number" id="prop-border-width" value="0">
+                                    </div>
+                                    <div class="prop-field">
+                                        <label>Estilo</label>
+                                        <select id="prop-border-style">
+                                            <option value="none">None</option>
+                                            <option value="solid">Solid</option>
+                                            <option value="dashed">Dashed</option>
+                                            <option value="dotted">Dotted</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="prop-row">
+                                    <label>Color</label>
+                                    <div class="color-input">
+                                        <input type="color" id="prop-border-color" value="#000000">
+                                        <input type="text" id="prop-border-color-hex" value="#000000">
+                                    </div>
+                                </div>
+                                <div class="prop-row">
+                                    <label>Radio</label>
+                                    <input type="range" id="prop-border-radius" min="0" max="100" value="0">
+                                    <span class="range-value" id="radius-value">0px</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Effects -->
+                        <div class="prop-section">
+                            <div class="prop-header">
+                                <i class="fas fa-magic"></i>
+                                <span>Efectos</span>
+                            </div>
+                            <div class="prop-content">
+                                <div class="prop-row">
+                                    <label>Opacidad</label>
+                                    <input type="range" id="prop-opacity" min="0" max="100" value="100">
+                                    <span class="range-value" id="opacity-value">100%</span>
+                                </div>
+                                <div class="prop-row">
+                                    <label>Sombra</label>
+                                    <select id="prop-shadow">
+                                        <option value="none">Ninguna</option>
+                                        <option value="sm">Pequeña</option>
+                                        <option value="md">Mediana</option>
+                                        <option value="lg">Grande</option>
+                                        <option value="xl">Extra Grande</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-content hidden" id="panel-code">
+                    <div class="code-editor-full">
+                        <div class="code-tabs">
+                            <button class="code-tab active" data-lang="html">HTML</button>
+                            <button class="code-tab" data-lang="css">CSS</button>
+                            <button class="code-tab" data-lang="js">JavaScript</button>
+                        </div>
+                        <textarea id="code-editor" spellcheck="false"></textarea>
+                        <div class="code-actions">
+                            <button class="btn-sm" id="btn-apply-code">
+                                <i class="fas fa-check"></i> Aplicar
+                            </button>
+                            <button class="btn-sm" id="btn-format-code">
+                                <i class="fas fa-indent"></i> Formatear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Export Modal -->
+        <div class="modal" id="export-modal">
+            <div class="modal-overlay"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-download"></i> Exportar Proyecto</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Nombre del archivo</label>
+                        <input type="text" id="export-filename" value="mi-proyecto.html">
+                    </div>
+                    <div class="form-group">
+                        <label>Opciones</label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="export-minify">
+                            <span>Minificar código</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="export-inline" checked>
+                            <span>CSS inline</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="export-frameworks" checked>
+                            <span>Incluir frameworks seleccionados</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary modal-cancel">Cancelar</button>
+                    <button class="btn-primary" id="btn-confirm-export">
+                        <i class="fas fa-download"></i> Exportar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview Modal -->
+        <div class="modal" id="preview-modal">
+            <div class="modal-overlay"></div>
+            <div class="modal-content modal-fullscreen">
+                <div class="modal-header">
+                    <h3><i class="fas fa-eye"></i> Vista Previa</h3>
+                    <div class="preview-controls">
+                        <button class="preview-device active" data-device="desktop"><i class="fas fa-desktop"></i></button>
+                        <button class="preview-device" data-device="tablet"><i class="fas fa-tablet-alt"></i></button>
+                        <button class="preview-device" data-device="mobile"><i class="fas fa-mobile-alt"></i></button>
+                    </div>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body preview-body">
+                    <iframe id="preview-frame-full"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Web Studio - Editor Frontend en Tiempo Real</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Welcome Screen -->
+    <div class="welcome-screen active" id="welcome-screen">
+        <div class="welcome-container">
+            <!-- Header -->
+            <div class="welcome-header">
+                <div class="welcome-logo">
+                    <i class="fas fa-layer-group"></i>
+                    <h1>Visual Web Studio</h1>
+                </div>
+                <p class="welcome-subtitle">Editor Frontend Profesional en Tiempo Real</p>
+            </div>
+
+            <!-- Project Setup -->
+            <div class="welcome-content">
+                <!-- Step 1: Project Info -->
+                <div class="setup-section">
+                    <h2><span class="step-number">1</span> Información del Proyecto</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nombre del Proyecto</label>
+                            <input type="text" id="project-name" placeholder="mi-proyecto-web" value="mi-proyecto">
+                        </div>
+                        <div class="form-group">
+                            <label>Carpeta de Destino</label>
+                            <div class="folder-input">
+                                <input type="text" id="project-path" placeholder="C:\Users\tu-usuario\Proyectos\mi-proyecto">
+                                <button class="btn-folder" id="btn-select-folder">
+                                    <i class="fas fa-folder-open"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row" style="margin-top: 16px;">
+                        <div class="form-group">
+                            <label>Administrador de Paquetes</label>
+                            <div class="package-manager-selector">
+                                <label class="pm-option active" data-pm="bun">
+                                    <input type="radio" name="package-manager" value="bun" checked>
+                                    <div class="pm-card">
+                                        <i class="fas fa-bolt"></i>
+                                        <span>Bun</span>
+                                        <small>Ultrarrápido</small>
+                                    </div>
+                                </label>
+                                <label class="pm-option" data-pm="npm">
+                                    <input type="radio" name="package-manager" value="npm">
+                                    <div class="pm-card">
+                                        <i class="fab fa-npm"></i>
+                                        <span>npm</span>
+                                        <small>Estándar</small>
+                                    </div>
+                                </label>
+                                <label class="pm-option" data-pm="pnpm">
+                                    <input type="radio" name="package-manager" value="pnpm">
+                                    <div class="pm-card">
+                                        <i class="fas fa-box"></i>
+                                        <span>pnpm</span>
+                                        <small>Eficiente</small>
+                                    </div>
+                                </label>
+                                <label class="pm-option" data-pm="yarn">
+                                    <input type="radio" name="package-manager" value="yarn">
+                                    <div class="pm-card">
+                                        <i class="fab fa-yarn"></i>
+                                        <span>Yarn</span>
+                                        <small>Confiable</small>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Modo de Desarrollo</label>
+                            <div class="dev-mode-selector">
+                                <label class="dm-option active" data-mode="visual">
+                                    <input type="radio" name="dev-mode" value="visual" checked>
+                                    <div class="dm-card">
+                                        <i class="fas fa-palette"></i>
+                                        <span>Visual (Figma-like)</span>
+                                    </div>
+                                </label>
+                                <label class="dm-option" data-mode="code">
+                                    <input type="radio" name="dev-mode" value="code">
+                                    <div class="dm-card">
+                                        <i class="fas fa-code"></i>
+                                        <span>Código</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Preset Selection -->
+                <div class="setup-section">
+                    <h2><span class="step-number">2</span> Tipo de Proyecto</h2>
+                    <div class="preset-grid">
+                        <div class="preset-card" data-preset="basic">
+                            <div class="preset-icon"><i class="fas fa-file-code"></i></div>
+                            <h3>HTML Básico</h3>
+                            <p>Solo HTML, CSS y JavaScript puro. Sin frameworks.</p>
+                            <ul class="preset-features">
+                                <li><i class="fas fa-check"></i> HTML5 Semántico</li>
+                                <li><i class="fas fa-check"></i> CSS3 Moderno</li>
+                                <li><i class="fas fa-check"></i> JavaScript ES6+</li>
+                            </ul>
+                        </div>
+                        <div class="preset-card active" data-preset="starter">
+                            <div class="preset-badge">Recomendado</div>
+                            <div class="preset-icon"><i class="fas fa-rocket"></i></div>
+                            <h3>Starter Pack</h3>
+                            <p>Frameworks esenciales para desarrollo rápido.</p>
+                            <ul class="preset-features">
+                                <li><i class="fas fa-check"></i> Bootstrap 5</li>
+                                <li><i class="fas fa-check"></i> Font Awesome</li>
+                                <li><i class="fas fa-check"></i> Google Fonts</li>
+                                <li><i class="fas fa-check"></i> AOS Animations</li>
+                            </ul>
+                        </div>
+                        <div class="preset-card" data-preset="tailwind">
+                            <div class="preset-icon"><i class="fas fa-wind"></i></div>
+                            <h3>Tailwind CSS</h3>
+                            <p>Utility-first CSS framework moderno.</p>
+                            <ul class="preset-features">
+                                <li><i class="fas fa-check"></i> Tailwind CSS</li>
+                                <li><i class="fas fa-check"></i> Alpine.js</li>
+                                <li><i class="fas fa-check"></i> Heroicons</li>
+                            </ul>
+                        </div>
+                        <div class="preset-card" data-preset="pro">
+                            <div class="preset-icon"><i class="fas fa-crown"></i></div>
+                            <h3>Pro Stack</h3>
+                            <p>Todo lo necesario para proyectos profesionales.</p>
+                            <ul class="preset-features">
+                                <li><i class="fas fa-check"></i> Bootstrap + Tailwind</li>
+                                <li><i class="fas fa-check"></i> GSAP Animations</li>
+                                <li><i class="fas fa-check"></i> Chart.js</li>
+                                <li><i class="fas fa-check"></i> SweetAlert2</li>
+                            </ul>
+                        </div>
+                        <div class="preset-card" data-preset="custom">
+                            <div class="preset-icon"><i class="fas fa-sliders-h"></i></div>
+                            <h3>Personalizado</h3>
+                            <p>Selecciona exactamente los frameworks que necesitas.</p>
+                            <ul class="preset-features">
+                                <li><i class="fas fa-check"></i> 50+ Frameworks</li>
+                                <li><i class="fas fa-check"></i> Control Total</li>
+                                <li><i class="fas fa-check"></i> Configuración Avanzada</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Framework Selection (for custom) -->
+                <div class="setup-section frameworks-section" id="frameworks-section">
+                    <h2><span class="step-number">3</span> Selecciona Frameworks <span class="selected-count">(<span id="fw-count">0</span> seleccionados)</span></h2>
+                    
+                    <div class="frameworks-tabs">
+                        <button class="fw-tab active" data-category="frameworks-js">🚀 JS Frameworks</button>
+                        <button class="fw-tab" data-category="meta-frameworks">⚡ Meta-Frameworks</button>
+                        <button class="fw-tab" data-category="css">🎨 CSS Frameworks</button>
+                        <button class="fw-tab" data-category="icons">🎯 Iconos</button>
+                        <button class="fw-tab" data-category="animations">✨ Animaciones</button>
+                        <button class="fw-tab" data-category="js">📦 JS Utilidades</button>
+                        <button class="fw-tab" data-category="ui">🧩 UI Components</button>
+                        <button class="fw-tab" data-category="charts">📊 Charts</button>
+                        <button class="fw-tab" data-category="forms">📝 Formularios</button>
+                        <button class="fw-tab" data-category="scroll">📜 Scroll</button>
+                        <button class="fw-tab" data-category="fonts">🔤 Fuentes</button>
+                    </div>
+
+                    <div class="frameworks-content">
+                        <!-- JavaScript Frameworks -->
+                        <div class="fw-category active" data-category="frameworks-js">
+                            <div class="fw-grid">
+                                <label class="fw-item" data-fw="react">
+                                    <input type="checkbox" value="react">
+                                    <div class="fw-card">
+                                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" alt="React">
+                                        <span>React</span>
+                                        <small>Biblioteca UI de Meta</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="vue">
+                                    <input type="checkbox" value="vue">
+                                    <div class="fw-card">
+                                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vuejs/vuejs-original.svg" alt="Vue">
+                                        <span>Vue.js 3</span>
+                                        <small>Framework progresivo</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="angular">
+                                    <input type="checkbox" value="angular">
+                                    <div class="fw-card">
+                                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/angularjs/angularjs-original.svg" alt="Angular">
+                                        <span>Angular</span>
+                                        <small>Framework de Google</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="svelte">
+                                    <input type="checkbox" value="svelte">
+                                    <div class="fw-card">
+                                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/svelte/svelte-original.svg" alt="Svelte">
+                                        <span>Svelte</span>
+                                        <small>Compilador reactivo</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="preact">
+                                    <input type="checkbox" value="preact">
+                                    <div class="fw-card">
+                                        <i class="fas fa-atom" style="font-size:32px;color:#673ab8;"></i>
+                                        <span>Preact</span>
+                                        <small>React alternativo 3KB</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="solid">
+                                    <input type="checkbox" value="solid">
+                                    <div class="fw-card">
+                                        <i class="fas fa-cube" style="font-size:32px;color:#2c4f7c;"></i>
+                                        <span>SolidJS</span>
+                                        <small>Reactividad sin Virtual DOM</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="qwik">
+                                    <input type="checkbox" value="qwik">
+                                    <div class="fw-card">
+                                        <i class="fas fa-bolt" style="font-size:32px;color:#18b6f6;"></i>
+                                        <span>Qwik</span>
+                                        <small>Resumabilidad instantánea</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="lit">
+                                    <input type="checkbox" value="lit">
+                                    <div class="fw-card">
+                                        <i class="fas fa-fire" style="font-size:32px;color:#325cff;"></i>
+                                        <span>Lit</span>
+                                        <small>Web Components simples</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="stencil">
+                                    <input type="checkbox" value="stencil">
+                                    <div class="fw-card">
+                                        <i class="fas fa-layer-group" style="font-size:32px;color:#4c48ff;"></i>
+                                        <span>Stencil</span>
+                                        <small>Compilador Web Components</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="ember">
+                                    <input type="checkbox" value="ember">
+                                    <div class="fw-card">
+                                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/ember/ember-original.svg" alt="Ember">
+                                        <span>Ember.js</span>
+                                        <small>Framework ambicioso</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="backbone">
+                                    <input type="checkbox" value="backbone">
+                                    <div class="fw-card">
+                                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/backbone/backbone-original.svg" alt="Backbone">
+                                        <span>Backbone.js</span>
+                                        <small>MVC ligero</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="mithril">
+                                    <input type="checkbox" value="mithril">
+                                    <div class="fw-card">
+                                        <i class="fas fa-gem" style="font-size:32px;color:#1e5799;"></i>
+                                        <span>Mithril.js</span>
+                                        <small>Framework SPA 10KB</small>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Meta-Frameworks -->
+                        <div class="fw-category" data-category="meta-frameworks">
+                            <div class="fw-grid">
+                                <label class="fw-item" data-fw="nextjs">
+                                    <input type="checkbox" value="nextjs">
+                                    <div class="fw-card">
+                                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg" alt="Next.js">
+                                        <span>Next.js</span>
+                                        <small>Framework React fullstack</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="nuxt">
+                                    <input type="checkbox" value="nuxt">
+                                    <div class="fw-card">
+                                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nuxtjs/nuxtjs-original.svg" alt="Nuxt">
+                                        <span>Nuxt 3</span>
+                                        <small>Framework Vue fullstack</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="astro">
+                                    <input type="checkbox" value="astro">
+                                    <div class="fw-card">
+                                        <i class="fas fa-rocket" style="font-size:32px;color:#ff5d01;"></i>
+                                        <span>Astro</span>
+                                        <small>Islands Architecture</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="remix">
+                                    <input type="checkbox" value="remix">
+                                    <div class="fw-card">
+                                        <i class="fas fa-infinity" style="font-size:32px;color:#121212;"></i>
+                                        <span>Remix</span>
+                                        <small>Full stack web framework</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="sveltekit">
+                                    <input type="checkbox" value="sveltekit">
+                                    <div class="fw-card">
+                                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/svelte/svelte-original.svg" alt="SvelteKit">
+                                        <span>SvelteKit</span>
+                                        <small>Framework Svelte fullstack</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="gatsby">
+                                    <input type="checkbox" value="gatsby">
+                                    <div class="fw-card">
+                                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/gatsby/gatsby-original.svg" alt="Gatsby">
+                                        <span>Gatsby</span>
+                                        <small>Static Site Generator</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="eleventy">
+                                    <input type="checkbox" value="eleventy">
+                                    <div class="fw-card">
+                                        <i class="fas fa-mountain" style="font-size:32px;color:#222;"></i>
+                                        <span>Eleventy (11ty)</span>
+                                        <small>SSG simple y flexible</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="hugo">
+                                    <input type="checkbox" value="hugo">
+                                    <div class="fw-card">
+                                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/hugo/hugo-original.svg" alt="Hugo">
+                                        <span>Hugo</span>
+                                        <small>SSG ultrarrápido en Go</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="vite">
+                                    <input type="checkbox" value="vite">
+                                    <div class="fw-card">
+                                        <i class="fas fa-bolt" style="font-size:32px;color:#646cff;"></i>
+                                        <span>Vite</span>
+                                        <small>Build tool ultrarrápido</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="parcel">
+                                    <input type="checkbox" value="parcel">
+                                    <div class="fw-card">
+                                        <i class="fas fa-box" style="font-size:32px;color:#e6a07c;"></i>
+                                        <span>Parcel</span>
+                                        <small>Zero config bundler</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="webpack">
+                                    <input type="checkbox" value="webpack">
+                                    <div class="fw-card">
+                                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/webpack/webpack-original.svg" alt="Webpack">
+                                        <span>Webpack</span>
+                                        <small>Module bundler</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="rollup">
+                                    <input type="checkbox" value="rollup">
+                                    <div class="fw-card">
+                                        <i class="fas fa-scroll" style="font-size:32px;color:#ff3333;"></i>
+                                        <span>Rollup</span>
+                                        <small>ES module bundler</small>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- CSS Frameworks -->
+                        <div class="fw-category" data-category="css">
+                            <div class="fw-grid">
+                                <label class="fw-item" data-fw="bootstrap">
+                                    <input type="checkbox" value="bootstrap">
+                                    <div class="fw-card">
+                                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/bootstrap/bootstrap-original.svg" alt="Bootstrap">
+                                        <span>Bootstrap 5</span>
+                                        <small>Framework CSS más popular</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="tailwind">
+                                    <input type="checkbox" value="tailwind">
+                                    <div class="fw-card">
+                                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-plain.svg" alt="Tailwind">
+                                        <span>Tailwind CSS</span>
+                                        <small>Utility-first CSS</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="bulma">
+                                    <input type="checkbox" value="bulma">
+                                    <div class="fw-card">
+                                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/bulma/bulma-plain.svg" alt="Bulma">
+                                        <span>Bulma</span>
+                                        <small>CSS moderno basado en Flexbox</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="foundation">
+                                    <input type="checkbox" value="foundation">
+                                    <div class="fw-card">
+                                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/foundation/foundation-original.svg" alt="Foundation">
+                                        <span>Foundation</span>
+                                        <small>Framework responsive avanzado</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="semantic-ui">
+                                    <input type="checkbox" value="semantic-ui">
+                                    <div class="fw-card">
+                                        <i class="fas fa-cube" style="font-size:32px;color:#35bdb2;"></i>
+                                        <span>Semantic UI</span>
+                                        <small>UI con lenguaje natural</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="uikit">
+                                    <input type="checkbox" value="uikit">
+                                    <div class="fw-card">
+                                        <i class="fas fa-th-large" style="font-size:32px;color:#2396f3;"></i>
+                                        <span>UIkit</span>
+                                        <small>Framework ligero y modular</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="materialize">
+                                    <input type="checkbox" value="materialize">
+                                    <div class="fw-card">
+                                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/materialui/materialui-original.svg" alt="Materialize">
+                                        <span>Materialize</span>
+                                        <small>Material Design CSS</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="skeleton">
+                                    <input type="checkbox" value="skeleton">
+                                    <div class="fw-card">
+                                        <i class="fas fa-bone" style="font-size:32px;color:#888;"></i>
+                                        <span>Skeleton</span>
+                                        <small>Boilerplate minimalista</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="pure-css">
+                                    <input type="checkbox" value="pure-css">
+                                    <div class="fw-card">
+                                        <i class="fas fa-feather" style="font-size:32px;color:#000;"></i>
+                                        <span>Pure CSS</span>
+                                        <small>Módulos CSS pequeños</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="milligram">
+                                    <input type="checkbox" value="milligram">
+                                    <div class="fw-card">
+                                        <i class="fas fa-prescription-bottle" style="font-size:32px;color:#a855f7;"></i>
+                                        <span>Milligram</span>
+                                        <small>Solo 2KB gzipped</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="spectre">
+                                    <input type="checkbox" value="spectre">
+                                    <div class="fw-card">
+                                        <i class="fas fa-ghost" style="font-size:32px;color:#5755d9;"></i>
+                                        <span>Spectre</span>
+                                        <small>Ligero y elegante</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="primer">
+                                    <input type="checkbox" value="primer">
+                                    <div class="fw-card">
+                                        <i class="fab fa-github" style="font-size:32px;color:#24292e;"></i>
+                                        <span>Primer</span>
+                                        <small>CSS de GitHub</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="pico">
+                                    <input type="checkbox" value="pico">
+                                    <div class="fw-card">
+                                        <i class="fas fa-leaf" style="font-size:32px;color:#10b981;"></i>
+                                        <span>Pico CSS</span>
+                                        <small>Minimal CSS sin clases</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="water-css">
+                                    <input type="checkbox" value="water-css">
+                                    <div class="fw-card">
+                                        <i class="fas fa-tint" style="font-size:32px;color:#0ea5e9;"></i>
+                                        <span>Water.css</span>
+                                        <small>Classless CSS</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="mvp-css">
+                                    <input type="checkbox" value="mvp-css">
+                                    <div class="fw-card">
+                                        <i class="fas fa-trophy" style="font-size:32px;color:#f59e0b;"></i>
+                                        <span>MVP.css</span>
+                                        <small>HTML semántico estilizado</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="chota">
+                                    <input type="checkbox" value="chota">
+                                    <div class="fw-card">
+                                        <i class="fas fa-compress" style="font-size:32px;color:#6366f1;"></i>
+                                        <span>Chota</span>
+                                        <small>Micro framework 3KB</small>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Icons -->
+                        <div class="fw-category" data-category="icons">
+                            <div class="fw-grid">
+                                <label class="fw-item" data-fw="fontawesome">
+                                    <input type="checkbox" value="fontawesome" checked>
+                                    <div class="fw-card">
+                                        <i class="fab fa-font-awesome" style="font-size:32px;color:#528dd7;"></i>
+                                        <span>Font Awesome</span>
+                                        <small>+7000 iconos</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="bootstrap-icons">
+                                    <input type="checkbox" value="bootstrap-icons">
+                                    <div class="fw-card">
+                                        <i class="fab fa-bootstrap" style="font-size:32px;color:#7952b3;"></i>
+                                        <span>Bootstrap Icons</span>
+                                        <small>+1800 iconos SVG</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="feather-icons">
+                                    <input type="checkbox" value="feather-icons">
+                                    <div class="fw-card">
+                                        <i class="fas fa-feather-alt" style="font-size:32px;color:#0ea5e9;"></i>
+                                        <span>Feather Icons</span>
+                                        <small>Iconos minimalistas</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="lucide">
+                                    <input type="checkbox" value="lucide">
+                                    <div class="fw-card">
+                                        <i class="fas fa-star" style="font-size:32px;color:#f97316;"></i>
+                                        <span>Lucide</span>
+                                        <small>Fork de Feather mejorado</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="ionicons">
+                                    <input type="checkbox" value="ionicons">
+                                    <div class="fw-card">
+                                        <i class="fas fa-atom" style="font-size:32px;color:#3880ff;"></i>
+                                        <span>Ionicons</span>
+                                        <small>Iconos de Ionic</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="material-icons">
+                                    <input type="checkbox" value="material-icons">
+                                    <div class="fw-card">
+                                        <i class="fas fa-google" style="font-size:32px;color:#4285f4;"></i>
+                                        <span>Material Icons</span>
+                                        <small>Iconos de Google</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="tabler-icons">
+                                    <input type="checkbox" value="tabler-icons">
+                                    <div class="fw-card">
+                                        <i class="fas fa-table" style="font-size:32px;color:#206bc4;"></i>
+                                        <span>Tabler Icons</span>
+                                        <small>+4200 iconos SVG</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="phosphor-icons">
+                                    <input type="checkbox" value="phosphor-icons">
+                                    <div class="fw-card">
+                                        <i class="fas fa-lightbulb" style="font-size:32px;color:#c4b5fd;"></i>
+                                        <span>Phosphor</span>
+                                        <small>Iconos flexibles</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="boxicons">
+                                    <input type="checkbox" value="boxicons">
+                                    <div class="fw-card">
+                                        <i class="fas fa-box" style="font-size:32px;color:#12b886;"></i>
+                                        <span>Boxicons</span>
+                                        <small>+1600 iconos</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="remix-icons">
+                                    <input type="checkbox" value="remix-icons">
+                                    <div class="fw-card">
+                                        <i class="fas fa-icons" style="font-size:32px;color:#ff6b6b;"></i>
+                                        <span>Remix Icons</span>
+                                        <small>+2400 iconos</small>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Animations -->
+                        <div class="fw-category" data-category="animations">
+                            <div class="fw-grid">
+                                <label class="fw-item" data-fw="animate-css">
+                                    <input type="checkbox" value="animate-css">
+                                    <div class="fw-card">
+                                        <i class="fas fa-magic" style="font-size:32px;color:#f472b6;"></i>
+                                        <span>Animate.css</span>
+                                        <small>Animaciones CSS listas</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="aos">
+                                    <input type="checkbox" value="aos">
+                                    <div class="fw-card">
+                                        <i class="fas fa-eye" style="font-size:32px;color:#8b5cf6;"></i>
+                                        <span>AOS</span>
+                                        <small>Animate On Scroll</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="gsap">
+                                    <input type="checkbox" value="gsap">
+                                    <div class="fw-card">
+                                        <i class="fas fa-bolt" style="font-size:32px;color:#88ce02;"></i>
+                                        <span>GSAP</span>
+                                        <small>Animaciones profesionales</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="motion-one">
+                                    <input type="checkbox" value="motion-one">
+                                    <div class="fw-card">
+                                        <i class="fas fa-running" style="font-size:32px;color:#ff0080;"></i>
+                                        <span>Motion One</span>
+                                        <small>Web Animations API</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="animejs">
+                                    <input type="checkbox" value="animejs">
+                                    <div class="fw-card">
+                                        <i class="fas fa-film" style="font-size:32px;color:#ff6f61;"></i>
+                                        <span>Anime.js</span>
+                                        <small>Motor de animación ligero</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="popmotion">
+                                    <input type="checkbox" value="popmotion">
+                                    <div class="fw-card">
+                                        <i class="fas fa-play-circle" style="font-size:32px;color:#ff1c68;"></i>
+                                        <span>Popmotion</span>
+                                        <small>Animaciones funcionales</small>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- JavaScript Libraries -->
+                        <div class="fw-category" data-category="js">
+                            <div class="fw-grid">
+                                <label class="fw-item" data-fw="jquery">
+                                    <input type="checkbox" value="jquery">
+                                    <div class="fw-card">
+                                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/jquery/jquery-original.svg" alt="jQuery">
+                                        <span>jQuery</span>
+                                        <small>Biblioteca DOM clásica</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="alpinejs">
+                                    <input type="checkbox" value="alpinejs">
+                                    <div class="fw-card">
+                                        <i class="fas fa-mountain" style="font-size:32px;color:#77c1d2;"></i>
+                                        <span>Alpine.js</span>
+                                        <small>Reactividad ligera</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="htmx">
+                                    <input type="checkbox" value="htmx">
+                                    <div class="fw-card">
+                                        <i class="fas fa-code" style="font-size:32px;color:#3d72d7;"></i>
+                                        <span>HTMX</span>
+                                        <small>AJAX desde HTML</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="petite-vue">
+                                    <input type="checkbox" value="petite-vue">
+                                    <div class="fw-card">
+                                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vuejs/vuejs-original.svg" alt="Vue">
+                                        <span>Petite Vue</span>
+                                        <small>Vue minimalista 6KB</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="hyperscript">
+                                    <input type="checkbox" value="hyperscript">
+                                    <div class="fw-card">
+                                        <i class="fas fa-terminal" style="font-size:32px;color:#5a67d8;"></i>
+                                        <span>Hyperscript</span>
+                                        <small>Scripting en HTML</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="stimulus">
+                                    <input type="checkbox" value="stimulus">
+                                    <div class="fw-card">
+                                        <i class="fas fa-zap" style="font-size:32px;color:#77e8b9;"></i>
+                                        <span>Stimulus</span>
+                                        <small>JS modesto de Hotwire</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="turbo">
+                                    <input type="checkbox" value="turbo">
+                                    <div class="fw-card">
+                                        <i class="fas fa-tachometer-alt" style="font-size:32px;color:#5cd8e6;"></i>
+                                        <span>Turbo</span>
+                                        <small>SPA sin JavaScript</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="lodash">
+                                    <input type="checkbox" value="lodash">
+                                    <div class="fw-card">
+                                        <i class="fas fa-toolbox" style="font-size:32px;color:#3492ff;"></i>
+                                        <span>Lodash</span>
+                                        <small>Utilidades JavaScript</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="axios">
+                                    <input type="checkbox" value="axios">
+                                    <div class="fw-card">
+                                        <i class="fas fa-exchange-alt" style="font-size:32px;color:#5a29e4;"></i>
+                                        <span>Axios</span>
+                                        <small>Cliente HTTP</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="dayjs">
+                                    <input type="checkbox" value="dayjs">
+                                    <div class="fw-card">
+                                        <i class="fas fa-calendar-alt" style="font-size:32px;color:#ff5f6d;"></i>
+                                        <span>Day.js</span>
+                                        <small>Manejo de fechas 2KB</small>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- UI Components -->
+                        <div class="fw-category" data-category="ui">
+                            <div class="fw-grid">
+                                <label class="fw-item" data-fw="swiper">
+                                    <input type="checkbox" value="swiper">
+                                    <div class="fw-card">
+                                        <i class="fas fa-images" style="font-size:32px;color:#6332f6;"></i>
+                                        <span>Swiper</span>
+                                        <small>Slider/Carousel moderno</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="splide">
+                                    <input type="checkbox" value="splide">
+                                    <div class="fw-card">
+                                        <i class="fas fa-clone" style="font-size:32px;color:#21cda8;"></i>
+                                        <span>Splide</span>
+                                        <small>Slider ligero</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="glightbox">
+                                    <input type="checkbox" value="glightbox">
+                                    <div class="fw-card">
+                                        <i class="fas fa-expand" style="font-size:32px;color:#0d6efd;"></i>
+                                        <span>GLightbox</span>
+                                        <small>Lightbox puro JS</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="tippy">
+                                    <input type="checkbox" value="tippy">
+                                    <div class="fw-card">
+                                        <i class="fas fa-comment-dots" style="font-size:32px;color:#ff6b81;"></i>
+                                        <span>Tippy.js</span>
+                                        <small>Tooltips elegantes</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="sweetalert2">
+                                    <input type="checkbox" value="sweetalert2">
+                                    <div class="fw-card">
+                                        <i class="fas fa-bell" style="font-size:32px;color:#f27474;"></i>
+                                        <span>SweetAlert2</span>
+                                        <small>Popups hermosos</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="toastify">
+                                    <input type="checkbox" value="toastify">
+                                    <div class="fw-card">
+                                        <i class="fas fa-sticky-note" style="font-size:32px;color:#0abf53;"></i>
+                                        <span>Toastify</span>
+                                        <small>Notificaciones toast</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="notyf">
+                                    <input type="checkbox" value="notyf">
+                                    <div class="fw-card">
+                                        <i class="fas fa-exclamation-circle" style="font-size:32px;color:#3dc763;"></i>
+                                        <span>Notyf</span>
+                                        <small>Notificaciones minimalistas</small>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Charts -->
+                        <div class="fw-category" data-category="charts">
+                            <div class="fw-grid">
+                                <label class="fw-item" data-fw="chartjs">
+                                    <input type="checkbox" value="chartjs">
+                                    <div class="fw-card">
+                                        <i class="fas fa-chart-bar" style="font-size:32px;color:#ff6384;"></i>
+                                        <span>Chart.js</span>
+                                        <small>Gráficos simples y flexibles</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="apexcharts">
+                                    <input type="checkbox" value="apexcharts">
+                                    <div class="fw-card">
+                                        <i class="fas fa-chart-line" style="font-size:32px;color:#008ffb;"></i>
+                                        <span>ApexCharts</span>
+                                        <small>Gráficos interactivos</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="d3">
+                                    <input type="checkbox" value="d3">
+                                    <div class="fw-card">
+                                        <i class="fas fa-project-diagram" style="font-size:32px;color:#f9a03c;"></i>
+                                        <span>D3.js</span>
+                                        <small>Visualización de datos</small>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Forms -->
+                        <div class="fw-category" data-category="forms">
+                            <div class="fw-grid">
+                                <label class="fw-item" data-fw="choices">
+                                    <input type="checkbox" value="choices">
+                                    <div class="fw-card">
+                                        <i class="fas fa-list-ul" style="font-size:32px;color:#00bcd4;"></i>
+                                        <span>Choices.js</span>
+                                        <small>Select mejorado</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="flatpickr">
+                                    <input type="checkbox" value="flatpickr">
+                                    <div class="fw-card">
+                                        <i class="fas fa-calendar" style="font-size:32px;color:#1bbc9b;"></i>
+                                        <span>Flatpickr</span>
+                                        <small>Date picker ligero</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="imask">
+                                    <input type="checkbox" value="imask">
+                                    <div class="fw-card">
+                                        <i class="fas fa-mask" style="font-size:32px;color:#6c5ce7;"></i>
+                                        <span>iMask</span>
+                                        <small>Input masks</small>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Scroll -->
+                        <div class="fw-category" data-category="scroll">
+                            <div class="fw-grid">
+                                <label class="fw-item" data-fw="scrollreveal">
+                                    <input type="checkbox" value="scrollreveal">
+                                    <div class="fw-card">
+                                        <i class="fas fa-scroll" style="font-size:32px;color:#5f27cd;"></i>
+                                        <span>ScrollReveal</span>
+                                        <small>Animaciones al scroll</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="locomotive-scroll">
+                                    <input type="checkbox" value="locomotive-scroll">
+                                    <div class="fw-card">
+                                        <i class="fas fa-train" style="font-size:32px;color:#000;"></i>
+                                        <span>Locomotive Scroll</span>
+                                        <small>Smooth scroll avanzado</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="rellax">
+                                    <input type="checkbox" value="rellax">
+                                    <div class="fw-card">
+                                        <i class="fas fa-layer-group" style="font-size:32px;color:#e17055;"></i>
+                                        <span>Rellax</span>
+                                        <small>Parallax ligero</small>
+                                    </div>
+                                </label>
+                                <label class="fw-item" data-fw="lenis">
+                                    <input type="checkbox" value="lenis">
+                                    <div class="fw-card">
+                                        <i class="fas fa-wind" style="font-size:32px;color:#2d3436;"></i>
+                                        <span>Lenis</span>
+                                        <small>Smooth scroll moderno</small>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Fonts -->
+                        <div class="fw-category" data-category="fonts">
+                            <div class="fw-grid">
+                                <label class="fw-item" data-fw="google-fonts">
+                                    <input type="checkbox" value="google-fonts" checked>
+                                    <div class="fw-card">
+                                        <i class="fab fa-google" style="font-size:32px;color:#4285f4;"></i>
+                                        <span>Google Fonts</span>
+                                        <small>Inter + Poppins</small>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="welcome-actions">
+                    <button class="btn-secondary" id="btn-open-existing">
+                        <i class="fas fa-folder-open"></i>
+                        Abrir Proyecto Existente
+                    </button>
+                    <button class="btn-primary" id="btn-create-project">
+                        <i class="fas fa-rocket"></i>
+                        Crear Proyecto
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Studio (Hidden initially) -->
+    <div class="studio-container" id="studio-container">
+        <!-- Top Menu Bar -->
+        <header class="menu-bar">
+            <div class="menu-left">
+                <div class="logo">
+                    <i class="fas fa-layer-group"></i>
+                    <span>Visual Web Studio</span>
+                </div>
+                <nav class="menu-items">
+                    <div class="menu-item">
+                        <span>Archivo</span>
+                        <div class="dropdown">
+                            <button id="menu-new"><i class="fas fa-file-plus"></i> Nuevo Proyecto</button>
+                            <button id="menu-open"><i class="fas fa-folder-open"></i> Abrir Proyecto</button>
+                            <button id="menu-save"><i class="fas fa-save"></i> Guardar <kbd>Ctrl+S</kbd></button>
+                            <div class="divider"></div>
+                            <button id="menu-export"><i class="fas fa-download"></i> Exportar</button>
+                        </div>
+                    </div>
+                    <div class="menu-item">
+                        <span>Ver</span>
+                        <div class="dropdown">
+                            <button id="menu-preview"><i class="fas fa-eye"></i> Vista Previa <kbd>F5</kbd></button>
+                            <button id="menu-refresh"><i class="fas fa-sync"></i> Actualizar <kbd>F5</kbd></button>
+                            <div class="divider"></div>
+                            <button id="menu-toggle-mode"><i class="fas fa-exchange-alt"></i> Cambiar Modo <kbd>Ctrl+M</kbd></button>
+                            <button id="menu-mode-visual"><i class="fas fa-palette"></i> Modo Visual</button>
+                            <button id="menu-mode-code"><i class="fas fa-code"></i> Modo Código</button>
+                            <div class="divider"></div>
+                            <button id="menu-devtools"><i class="fas fa-code"></i> DevTools</button>
+                        </div>
+                    </div>
+                    <div class="menu-item mode-indicator">
+                        <span id="current-mode-label"><i class="fas fa-palette"></i> Visual</span>
+                    </div>
+                </nav>
+            </div>
+            <div class="menu-center">
+                <div class="project-info">
+                    <i class="fas fa-folder"></i>
+                    <span id="current-project-name">Mi Proyecto</span>
+                    <span class="project-path" id="current-project-path"></span>
+                </div>
+            </div>
+            <div class="menu-right">
+                <button class="btn-action" id="btn-refresh-preview" title="Actualizar Preview">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button class="btn-action primary" id="btn-open-browser" title="Abrir en Navegador">
+                    <i class="fas fa-external-link-alt"></i>
+                    <span>Abrir en Navegador</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Workspace - Code Mode -->
+        <div class="workspace" id="workspace-code">
+            <!-- File Explorer -->
+            <aside class="panel panel-left" id="file-explorer">
+                <div class="panel-header">
+                    <h3><i class="fas fa-folder-tree"></i> Explorador</h3>
+                    <div class="panel-actions">
+                        <button class="icon-btn" title="Nuevo Archivo"><i class="fas fa-file-plus"></i></button>
+                        <button class="icon-btn" title="Nueva Carpeta"><i class="fas fa-folder-plus"></i></button>
+                        <button class="icon-btn" title="Actualizar"><i class="fas fa-sync-alt"></i></button>
+                    </div>
+                </div>
+                <div class="file-tree" id="file-tree">
+                    <!-- Files will be loaded here -->
+                </div>
+            </aside>
+
+            <!-- Editor Area -->
+            <main class="editor-main">
+                <div class="editor-tabs" id="editor-tabs">
+                    <!-- Tabs will be added here -->
+                </div>
+                <div class="editor-content" id="editor-content">
+                    <div class="editor-placeholder">
+                        <i class="fas fa-file-code"></i>
+                        <h3>Selecciona un archivo para editar</h3>
+                        <p>Haz clic en un archivo del explorador para comenzar</p>
+                    </div>
+                    <textarea id="code-editor" class="code-editor hidden" spellcheck="false"></textarea>
+                </div>
+            </main>
+
+            <!-- Live Preview -->
+            <aside class="panel panel-right preview-panel" id="preview-panel">
+                <div class="panel-header">
+                    <h3><i class="fas fa-eye"></i> Vista Previa en Tiempo Real</h3>
+                    <div class="panel-actions">
+                        <select id="preview-device" class="device-select">
+                            <option value="desktop">Desktop</option>
+                            <option value="tablet">Tablet (768px)</option>
+                            <option value="mobile">Mobile (375px)</option>
+                        </select>
+                        <button class="icon-btn" id="btn-refresh" title="Actualizar"><i class="fas fa-sync-alt"></i></button>
+                    </div>
+                </div>
+                <div class="preview-container">
+                    <iframe id="live-preview" class="live-preview"></iframe>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Main Workspace - Figma/Visual Mode -->
+        <div class="workspace figma-workspace hidden" id="workspace-figma">
+            <!-- Components Panel -->
+            <aside class="panel panel-left components-panel">
+                <div class="panel-header">
+                    <h3><i class="fas fa-shapes"></i> Componentes</h3>
+                </div>
+                <div class="components-list">
+                    <div class="component-category">
+                        <h4><i class="fas fa-font"></i> Texto</h4>
+                        <div class="component-items">
+                            <div class="component-item" draggable="true" data-type="heading">
+                                <i class="fas fa-heading"></i>
+                                <span>Título H1</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="heading2">
+                                <i class="fas fa-heading"></i>
+                                <span>Título H2</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="paragraph">
+                                <i class="fas fa-paragraph"></i>
+                                <span>Párrafo</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="link">
+                                <i class="fas fa-link"></i>
+                                <span>Enlace</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="component-category">
+                        <h4><i class="fas fa-square"></i> Contenedores</h4>
+                        <div class="component-items">
+                            <div class="component-item" draggable="true" data-type="div">
+                                <i class="fas fa-square"></i>
+                                <span>Div</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="section">
+                                <i class="fas fa-layer-group"></i>
+                                <span>Sección</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="container">
+                                <i class="fas fa-box"></i>
+                                <span>Container</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="row">
+                                <i class="fas fa-columns"></i>
+                                <span>Row (Flex)</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="grid">
+                                <i class="fas fa-th"></i>
+                                <span>Grid</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="component-category">
+                        <h4><i class="fas fa-mouse-pointer"></i> Interactivos</h4>
+                        <div class="component-items">
+                            <div class="component-item" draggable="true" data-type="button">
+                                <i class="fas fa-hand-pointer"></i>
+                                <span>Botón</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="input">
+                                <i class="fas fa-i-cursor"></i>
+                                <span>Input</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="textarea">
+                                <i class="fas fa-align-left"></i>
+                                <span>Textarea</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="select">
+                                <i class="fas fa-caret-square-down"></i>
+                                <span>Select</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="checkbox">
+                                <i class="fas fa-check-square"></i>
+                                <span>Checkbox</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="component-category">
+                        <h4><i class="fas fa-image"></i> Media</h4>
+                        <div class="component-items">
+                            <div class="component-item" draggable="true" data-type="image">
+                                <i class="fas fa-image"></i>
+                                <span>Imagen</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="video">
+                                <i class="fas fa-video"></i>
+                                <span>Video</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="icon">
+                                <i class="fas fa-icons"></i>
+                                <span>Icono</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="component-category">
+                        <h4><i class="fas fa-th-large"></i> Layout</h4>
+                        <div class="component-items">
+                            <div class="component-item" draggable="true" data-type="navbar">
+                                <i class="fas fa-bars"></i>
+                                <span>Navbar</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="hero">
+                                <i class="fas fa-star"></i>
+                                <span>Hero Section</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="card">
+                                <i class="fas fa-id-card"></i>
+                                <span>Card</span>
+                            </div>
+                            <div class="component-item" draggable="true" data-type="footer">
+                                <i class="fas fa-shoe-prints"></i>
+                                <span>Footer</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Visual Canvas -->
+            <main class="figma-canvas-container">
+                <div class="canvas-toolbar">
+                    <div class="toolbar-group">
+                        <button class="tool-btn active" data-tool="select" title="Seleccionar (V)">
+                            <i class="fas fa-mouse-pointer"></i>
+                        </button>
+                        <button class="tool-btn" data-tool="move" title="Mover (M)">
+                            <i class="fas fa-arrows-alt"></i>
+                        </button>
+                        <button class="tool-btn" data-tool="text" title="Texto (T)">
+                            <i class="fas fa-font"></i>
+                        </button>
+                    </div>
+                    <div class="toolbar-group">
+                        <button class="tool-btn" id="btn-undo" title="Deshacer (Ctrl+Z)">
+                            <i class="fas fa-undo"></i>
+                        </button>
+                        <button class="tool-btn" id="btn-redo" title="Rehacer (Ctrl+Y)">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                    </div>
+                    <div class="toolbar-group">
+                        <select id="canvas-zoom" class="zoom-select">
+                            <option value="50">50%</option>
+                            <option value="75">75%</option>
+                            <option value="100" selected>100%</option>
+                            <option value="125">125%</option>
+                            <option value="150">150%</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="figma-canvas" id="figma-canvas">
+                    <div class="canvas-artboard" id="canvas-artboard">
+                        <!-- Drop zone for components -->
+                        <div class="drop-hint">
+                            <i class="fas fa-plus-circle"></i>
+                            <p>Arrastra componentes aquí</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Properties Panel -->
+            <aside class="panel panel-right properties-panel">
+                <div class="panel-header">
+                    <div class="panel-tabs">
+                        <button class="panel-tab active" data-panel="properties">
+                            <i class="fas fa-sliders-h"></i> Propiedades
+                        </button>
+                        <button class="panel-tab" data-panel="code">
+                            <i class="fas fa-code"></i> Código
+                        </button>
+                    </div>
+                    <button class="icon-btn" id="btn-open-code-window" title="Abrir en ventana separada">
+                        <i class="fas fa-external-link-alt"></i>
+                    </button>
+                </div>
+                
+                <!-- Code Panel (hidden by default) -->
+                <div class="code-panel hidden" id="figma-code-panel">
+                    <div class="code-panel-header">
+                        <span>HTML Generado</span>
+                        <button class="icon-btn" id="btn-copy-code" title="Copiar código">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <pre class="generated-code" id="generated-html-code"><code>&lt;!-- Arrastra componentes para ver el código --&gt;</code></pre>
+                </div>
+                <div class="properties-content" id="properties-content">
+                    <div class="no-selection">
+                        <i class="fas fa-mouse-pointer"></i>
+                        <p>Selecciona un elemento para ver sus propiedades</p>
+                    </div>
+                </div>
+                <div class="properties-sections hidden" id="properties-sections">
+                    <!-- Layout -->
+                    <div class="prop-section">
+                        <h4><i class="fas fa-ruler-combined"></i> Tamaño</h4>
+                        <div class="prop-row">
+                            <div class="prop-field">
+                                <label>W</label>
+                                <input type="number" id="prop-width" placeholder="auto">
+                                <span>px</span>
+                            </div>
+                            <div class="prop-field">
+                                <label>H</label>
+                                <input type="number" id="prop-height" placeholder="auto">
+                                <span>px</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Position -->
+                    <div class="prop-section">
+                        <h4><i class="fas fa-arrows-alt"></i> Posición</h4>
+                        <div class="prop-row">
+                            <div class="prop-field">
+                                <label>X</label>
+                                <input type="number" id="prop-x" value="0">
+                                <span>px</span>
+                            </div>
+                            <div class="prop-field">
+                                <label>Y</label>
+                                <input type="number" id="prop-y" value="0">
+                                <span>px</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Spacing -->
+                    <div class="prop-section">
+                        <h4><i class="fas fa-expand-arrows-alt"></i> Espaciado</h4>
+                        <div class="prop-row">
+                            <div class="prop-field">
+                                <label>Padding</label>
+                                <input type="text" id="prop-padding" placeholder="0">
+                            </div>
+                        </div>
+                        <div class="prop-row">
+                            <div class="prop-field">
+                                <label>Margin</label>
+                                <input type="text" id="prop-margin" placeholder="0">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Colors -->
+                    <div class="prop-section">
+                        <h4><i class="fas fa-palette"></i> Colores</h4>
+                        <div class="prop-row">
+                            <div class="prop-field color-field">
+                                <label>Fondo</label>
+                                <input type="color" id="prop-bg-color" value="#ffffff">
+                                <input type="text" id="prop-bg-color-text" value="#ffffff">
+                            </div>
+                        </div>
+                        <div class="prop-row">
+                            <div class="prop-field color-field">
+                                <label>Texto</label>
+                                <input type="color" id="prop-text-color" value="#000000">
+                                <input type="text" id="prop-text-color-text" value="#000000">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Typography -->
+                    <div class="prop-section">
+                        <h4><i class="fas fa-font"></i> Tipografía</h4>
+                        <div class="prop-row">
+                            <div class="prop-field">
+                                <label>Fuente</label>
+                                <select id="prop-font-family">
+                                    <option value="Inter">Inter</option>
+                                    <option value="Poppins">Poppins</option>
+                                    <option value="Roboto">Roboto</option>
+                                    <option value="Arial">Arial</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="prop-row">
+                            <div class="prop-field">
+                                <label>Tamaño</label>
+                                <input type="number" id="prop-font-size" value="16">
+                                <span>px</span>
+                            </div>
+                            <div class="prop-field">
+                                <label>Peso</label>
+                                <select id="prop-font-weight">
+                                    <option value="300">Light</option>
+                                    <option value="400" selected>Regular</option>
+                                    <option value="500">Medium</option>
+                                    <option value="600">Semibold</option>
+                                    <option value="700">Bold</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Border -->
+                    <div class="prop-section">
+                        <h4><i class="fas fa-border-style"></i> Borde</h4>
+                        <div class="prop-row">
+                            <div class="prop-field">
+                                <label>Radio</label>
+                                <input type="number" id="prop-border-radius" value="0">
+                                <span>px</span>
+                            </div>
+                            <div class="prop-field">
+                                <label>Ancho</label>
+                                <input type="number" id="prop-border-width" value="0">
+                                <span>px</span>
+                            </div>
+                        </div>
+                        <div class="prop-row">
+                            <div class="prop-field color-field">
+                                <label>Color</label>
+                                <input type="color" id="prop-border-color" value="#000000">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Terminal Panel -->
+        <div class="terminal-panel" id="terminal-panel">
+            <div class="terminal-header">
+                <div class="terminal-tabs">
+                    <button class="terminal-tab active" data-tab="terminal">
+                        <i class="fas fa-terminal"></i> Terminal
+                    </button>
+                    <button class="terminal-tab" data-tab="output">
+                        <i class="fas fa-stream"></i> Output
+                    </button>
+                    <button class="terminal-tab" data-tab="problems">
+                        <i class="fas fa-exclamation-triangle"></i> Problemas
+                    </button>
+                </div>
+                <div class="terminal-actions">
+                    <button class="terminal-action" id="btn-run-dev" title="Ejecutar Dev Server">
+                        <i class="fas fa-play"></i> Run Dev
+                    </button>
+                    <button class="terminal-action" id="btn-install-deps" title="Instalar Dependencias">
+                        <i class="fas fa-download"></i> Install
+                    </button>
+                    <button class="terminal-action" id="btn-clear-terminal" title="Limpiar">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <button class="terminal-action" id="btn-toggle-terminal" title="Minimizar">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="terminal-content" id="terminal-content">
+                <div class="terminal-output" id="terminal-output">
+                    <div class="terminal-line welcome">
+                        <span class="terminal-prefix">$</span>
+                        <span>Visual Web Studio Terminal - Listo para ejecutar comandos</span>
+                    </div>
+                    <div class="terminal-line info">
+                        <span class="terminal-prefix">ℹ</span>
+                        <span>Package Manager: <strong id="terminal-pm">bun</strong></span>
+                    </div>
+                </div>
+                <div class="terminal-input-container">
+                    <span class="terminal-prompt">$</span>
+                    <input type="text" id="terminal-input" class="terminal-input" placeholder="Escribe un comando..." autocomplete="off">
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-left">
+                <span class="status-item"><i class="fas fa-circle" style="color:#22c55e;"></i> Conectado</span>
+                <span class="status-item" id="status-file">Sin archivo</span>
+            </div>
+            <div class="status-center">
+                <button class="status-btn" id="btn-show-terminal" title="Mostrar Terminal">
+                    <i class="fas fa-terminal"></i> Terminal
+                </button>
+            </div>
+            <div class="status-right">
+                <span class="status-item" id="status-pm"><i class="fas fa-box"></i> bun</span>
+                <span class="status-item" id="status-line">Ln 1, Col 1</span>
+                <span class="status-item" id="status-lang">HTML</span>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/main.js"></script>
+</body>
+</html>
