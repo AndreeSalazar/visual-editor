@@ -1160,6 +1160,34 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Layers Panel -->
+                <div class="layers-panel">
+                    <div class="layers-header">
+                        <h4><i class="fas fa-layer-group"></i> Capas</h4>
+                        <div class="layers-actions">
+                            <button class="layer-action-btn" id="btn-delete-layer" title="Eliminar capa">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <button class="layer-action-btn" id="btn-duplicate-layer" title="Duplicar capa">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button class="layer-action-btn" id="btn-layer-up" title="Mover arriba">
+                                <i class="fas fa-arrow-up"></i>
+                            </button>
+                            <button class="layer-action-btn" id="btn-layer-down" title="Mover abajo">
+                                <i class="fas fa-arrow-down"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="layers-list" id="layers-list">
+                        <!-- Layers will be added dynamically -->
+                        <div class="no-layers">
+                            <i class="fas fa-layer-group"></i>
+                            <p>Arrastra componentes para crear capas</p>
+                        </div>
+                    </div>
+                </div>
             </aside>
 
             <!-- Visual Canvas -->
@@ -1357,6 +1385,113 @@
                                 <input type="color" id="prop-border-color" value="#000000">
                             </div>
                         </div>
+                    </div>
+                    <!-- Display & Layout -->
+                    <div class="prop-section">
+                        <h4><i class="fas fa-th-large"></i> Display</h4>
+                        <div class="prop-row">
+                            <div class="prop-field">
+                                <label>Display</label>
+                                <select id="prop-display">
+                                    <option value="block">Block</option>
+                                    <option value="flex">Flex</option>
+                                    <option value="grid">Grid</option>
+                                    <option value="inline">Inline</option>
+                                    <option value="inline-block">Inline-Block</option>
+                                    <option value="none">None</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="prop-row flex-options" id="flex-options">
+                            <div class="prop-field">
+                                <label>Justify</label>
+                                <select id="prop-justify">
+                                    <option value="flex-start">Start</option>
+                                    <option value="center">Center</option>
+                                    <option value="flex-end">End</option>
+                                    <option value="space-between">Space Between</option>
+                                    <option value="space-around">Space Around</option>
+                                </select>
+                            </div>
+                            <div class="prop-field">
+                                <label>Align</label>
+                                <select id="prop-align">
+                                    <option value="flex-start">Start</option>
+                                    <option value="center">Center</option>
+                                    <option value="flex-end">End</option>
+                                    <option value="stretch">Stretch</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="prop-row">
+                            <div class="prop-field">
+                                <label>Gap</label>
+                                <input type="number" id="prop-gap" value="0">
+                                <span>px</span>
+                            </div>
+                            <div class="prop-field">
+                                <label>Direction</label>
+                                <select id="prop-flex-direction">
+                                    <option value="row">Row</option>
+                                    <option value="column">Column</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Effects -->
+                    <div class="prop-section">
+                        <h4><i class="fas fa-magic"></i> Efectos</h4>
+                        <div class="prop-row">
+                            <div class="prop-field">
+                                <label>Opacidad</label>
+                                <input type="range" id="prop-opacity" min="0" max="100" value="100">
+                                <span id="prop-opacity-value">100%</span>
+                            </div>
+                        </div>
+                        <div class="prop-row">
+                            <div class="prop-field">
+                                <label>Sombra</label>
+                                <select id="prop-shadow">
+                                    <option value="none">Ninguna</option>
+                                    <option value="0 2px 4px rgba(0,0,0,0.1)">Suave</option>
+                                    <option value="0 4px 8px rgba(0,0,0,0.15)">Media</option>
+                                    <option value="0 8px 16px rgba(0,0,0,0.2)">Fuerte</option>
+                                    <option value="0 12px 24px rgba(0,0,0,0.25)">Extra</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Text Alignment -->
+                    <div class="prop-section">
+                        <h4><i class="fas fa-align-left"></i> Alineación Texto</h4>
+                        <div class="prop-row">
+                            <div class="prop-field btn-group">
+                                <button class="align-btn" data-align="left" title="Izquierda"><i class="fas fa-align-left"></i></button>
+                                <button class="align-btn" data-align="center" title="Centro"><i class="fas fa-align-center"></i></button>
+                                <button class="align-btn" data-align="right" title="Derecha"><i class="fas fa-align-right"></i></button>
+                                <button class="align-btn" data-align="justify" title="Justificado"><i class="fas fa-align-justify"></i></button>
+                            </div>
+                        </div>
+                        <div class="prop-row">
+                            <div class="prop-field">
+                                <label>Line Height</label>
+                                <input type="number" id="prop-line-height" value="1.5" step="0.1">
+                            </div>
+                            <div class="prop-field">
+                                <label>Letter Spacing</label>
+                                <input type="number" id="prop-letter-spacing" value="0" step="0.5">
+                                <span>px</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Actions -->
+                    <div class="prop-section prop-actions">
+                        <button class="prop-action-btn danger" id="btn-delete-element">
+                            <i class="fas fa-trash"></i> Eliminar Elemento
+                        </button>
+                        <button class="prop-action-btn" id="btn-duplicate-element">
+                            <i class="fas fa-copy"></i> Duplicar
+                        </button>
                     </div>
                 </div>
             </aside>

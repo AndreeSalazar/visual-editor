@@ -689,6 +689,15 @@ window.closeTab = function(tabElement) {
 };
 
 async function saveCurrentFile() {
+    // Check if we're in visual mode - save canvas instead
+    const figmaMode = document.getElementById('figma-mode');
+    if (figmaMode && !figmaMode.classList.contains('hidden')) {
+        await saveCanvasToProject();
+        showToast('Proyecto guardado desde canvas visual', 'success');
+        return;
+    }
+    
+    // Code mode - save editor content
     if (!state.currentFile) {
         showToast('No hay archivo abierto', 'warning');
         return;
@@ -806,10 +815,19 @@ async function refreshPreview() {
 }
 
 async function openInBrowser() {
+    if (!state.projectPath) {
+        showToast('No hay proyecto abierto', 'warning');
+        return;
+    }
+    
     const htmlPath = `${state.projectPath}\\index.html`;
     try {
-        const { open } = await import('@tauri-apps/plugin-opener');
-        await open(htmlPath);
+        // Use shell command to open in default browser
+        await invoke('run_terminal_command', {
+            command: `start "" "${htmlPath}"`,
+            cwd: state.projectPath
+        });
+        showToast('Abriendo en navegador...', 'success');
     } catch (error) {
         console.error('Error opening in browser:', error);
         showToast('Error al abrir en navegador', 'error');
@@ -829,12 +847,39 @@ function handleKeyboard(e) {
                 studioContainer.classList.remove('active');
                 welcomeScreen.classList.add('active');
                 break;
+            case 'm':
+                e.preventDefault();
+                toggleMode();
+                break;
+            case 'ñ':
+            case 'Ñ':
+            case '`':
+            case '~':
+                e.preventDefault();
+                toggleTerminal();
+                break;
         }
     }
     
     if (e.key === 'F5') {
         e.preventDefault();
         refreshPreview();
+    }
+    
+    // Delete key for selected element
+    if (e.key === 'Delete' && selectedElement) {
+        e.preventDefault();
+        deleteSelectedLayer();
+    }
+}
+
+function toggleTerminal() {
+    const terminalPanel = document.getElementById('terminal-panel');
+    if (terminalPanel) {
+        terminalPanel.classList.toggle('active');
+        if (terminalPanel.classList.contains('active')) {
+            document.getElementById('terminal-input')?.focus();
+        }
     }
 }
 
@@ -924,6 +969,7 @@ function switchWorkspaceMode(mode) {
 // ==================== FIGMA MODE - DRAG & DROP ====================
 let selectedElement = null;
 let draggedComponent = null;
+let draggedCanvasElement = null;
 
 function initFigmaMode() {
     const artboard = document.getElementById('canvas-artboard');
@@ -950,6 +996,15 @@ function initFigmaMode() {
     // Load existing project HTML into canvas
     loadProjectIntoCanvas();
     
+    // Setup layers panel
+    setupLayersPanel();
+    
+    // Setup auto-sync (save every 2 seconds if changes detected)
+    setupAutoSync();
+    
+    // Setup global drag handlers
+    setupGlobalDragHandlers();
+    
     // Setup tool buttons
     document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -961,7 +1016,13 @@ function initFigmaMode() {
     // Setup zoom
     document.getElementById('canvas-zoom')?.addEventListener('change', (e) => {
         const zoom = parseInt(e.target.value) / 100;
-        artboard.style.transform = `scale(${zoom})`;
+        if ('zoom' in artboard.style) {
+            artboard.style.zoom = zoom;
+            artboard.style.transform = '';
+        } else {
+            artboard.style.zoom = '';
+            artboard.style.transform = `scale(${zoom})`;
+        }
     });
     
     // Setup panel tabs (Properties/Code)
@@ -1024,41 +1085,111 @@ function handleDragEnd(e) {
 
 function handleDragOver(e) {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'copy';
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = draggedCanvasElement ? 'move' : 'copy';
     const artboard = document.getElementById('canvas-artboard');
     artboard?.classList.add('drag-over');
 }
 
 function handleDragLeave(e) {
+    e.preventDefault();
     const artboard = document.getElementById('canvas-artboard');
-    if (!artboard.contains(e.relatedTarget)) {
+    // Only remove if leaving the artboard entirely
+    const rect = artboard.getBoundingClientRect();
+    if (e.clientX < rect.left || e.clientX > rect.right || 
+        e.clientY < rect.top || e.clientY > rect.bottom) {
         artboard?.classList.remove('drag-over');
     }
 }
 
 function handleDrop(e) {
     e.preventDefault();
+    e.stopPropagation();
     const artboard = document.getElementById('canvas-artboard');
     artboard?.classList.remove('drag-over');
     
     const componentType = e.dataTransfer.getData('text/plain');
-    if (!componentType || componentType === 'move') return;
+    if (!componentType) return;
     
-    // Hide drop hint
-    const dropHint = artboard.querySelector('.drop-hint');
-    if (dropHint) dropHint.style.display = 'none';
+    if (componentType === 'move') {
+        if (!draggedCanvasElement || !artboard) return;
+        
+        const dropZone = artboard.querySelector('.canvas-drop-zone');
+        if (dropZone) dropZone.style.display = 'none';
+        
+        artboard.appendChild(draggedCanvasElement);
+        selectElement(draggedCanvasElement);
+        updateLayersPanel();
+        updateGeneratedCode();
+        markCanvasChanged();
+        draggedCanvasElement.classList.remove('dragging');
+        draggedCanvasElement = null;
+        return;
+    }
+    
+    // Hide drop zone
+    const dropZone = artboard.querySelector('.canvas-drop-zone');
+    if (dropZone) dropZone.style.display = 'none';
     
     // Create element based on type
     const element = createCanvasElement(componentType);
     if (element) {
         artboard.appendChild(element);
         selectElement(element);
+        updateLayersPanel();
         showToast(`${componentType} agregado - Doble clic para editar texto`, 'success');
         
         // Update code panel and save to project
         updateGeneratedCode();
         saveCanvasToProject();
     }
+}
+
+// Setup global drag handlers for the figma canvas area
+function setupGlobalDragHandlers() {
+    const figmaCanvas = document.querySelector('.figma-canvas');
+    if (!figmaCanvas) return;
+    
+    // Allow drop anywhere in the figma canvas area
+    figmaCanvas.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = draggedCanvasElement ? 'move' : 'copy';
+        const artboard = document.getElementById('canvas-artboard');
+        artboard?.classList.add('drag-over');
+    });
+    
+    figmaCanvas.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const artboard = document.getElementById('canvas-artboard');
+        if (!artboard) return;
+        
+        artboard.classList.remove('drag-over');
+        
+        const componentType = e.dataTransfer.getData('text/plain');
+        if (!componentType) return;
+        
+        if (componentType === 'move') {
+            if (!draggedCanvasElement) return;
+            artboard.appendChild(draggedCanvasElement);
+            selectElement(draggedCanvasElement);
+            updateLayersPanel();
+            updateGeneratedCode();
+            markCanvasChanged();
+            draggedCanvasElement.classList.remove('dragging');
+            draggedCanvasElement = null;
+            return;
+        }
+        
+        const element = createCanvasElement(componentType);
+        if (element) {
+            artboard.appendChild(element);
+            selectElement(element);
+            updateLayersPanel();
+            showToast(`${componentType} agregado`, 'success');
+            updateGeneratedCode();
+            saveCanvasToProject();
+        }
+    });
 }
 
 function createCanvasElement(type) {
@@ -1180,11 +1311,14 @@ function createCanvasElement(type) {
     // Make draggable within canvas
     wrapper.draggable = true;
     wrapper.addEventListener('dragstart', (e) => {
+        e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', 'move');
+        draggedCanvasElement = wrapper;
         wrapper.classList.add('dragging');
     });
     wrapper.addEventListener('dragend', () => {
         wrapper.classList.remove('dragging');
+        if (draggedCanvasElement === wrapper) draggedCanvasElement = null;
     });
     
     return wrapper;
@@ -1202,6 +1336,15 @@ async function loadProjectIntoCanvas() {
         const htmlPath = state.projectPath + '\\index.html';
         const htmlContent = await invoke('read_file_content', { path: htmlPath });
         
+        // Also read CSS file
+        let cssContent = '';
+        try {
+            const cssPath = state.projectPath + '\\css\\styles.css';
+            cssContent = await invoke('read_file_content', { path: cssPath });
+        } catch (e) {
+            console.log('No CSS file found');
+        }
+        
         if (!htmlContent) return;
         
         // Parse the HTML
@@ -1214,20 +1357,32 @@ async function loadProjectIntoCanvas() {
         // Clear the artboard
         artboard.innerHTML = '';
         
-        // Hide drop hint since we have content
-        const dropHint = document.createElement('div');
-        dropHint.className = 'drop-hint';
-        dropHint.style.display = 'none';
-        dropHint.innerHTML = '<i class="fas fa-plus-circle"></i><p>Arrastra componentes aquí</p>';
-        artboard.appendChild(dropHint);
+        // Add drop zone overlay for drag & drop
+        const dropZone = document.createElement('div');
+        dropZone.className = 'canvas-drop-zone';
+        dropZone.innerHTML = '<div class="drop-indicator"><i class="fas fa-plus-circle"></i><p>Soltar aquí</p></div>';
+        artboard.appendChild(dropZone);
         
-        // Convert HTML elements to canvas elements
+        // Inject CSS styles into the artboard
+        if (cssContent) {
+            const styleEl = document.createElement('style');
+            styleEl.textContent = cssContent;
+            artboard.appendChild(styleEl);
+        }
+        
+        // Convert ALL HTML elements to canvas elements (including nested)
         Array.from(body.children).forEach(child => {
+            // Skip script tags
+            if (child.tagName.toLowerCase() === 'script') return;
+            
             const canvasElement = htmlToCanvasElement(child);
             if (canvasElement) {
                 artboard.appendChild(canvasElement);
             }
         });
+        
+        // Update layers panel
+        updateLayersPanel();
         
         // Update code panel
         updateGeneratedCode();
@@ -1236,7 +1391,6 @@ async function loadProjectIntoCanvas() {
         
     } catch (error) {
         console.error('Error loading project into canvas:', error);
-        // Keep the empty canvas with drop hint
     }
 }
 
@@ -1351,11 +1505,14 @@ function setupCanvasElementInteraction(wrapper) {
     // Make draggable
     wrapper.draggable = true;
     wrapper.addEventListener('dragstart', (e) => {
+        e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', 'move');
+        draggedCanvasElement = wrapper;
         wrapper.classList.add('dragging');
     });
     wrapper.addEventListener('dragend', () => {
         wrapper.classList.remove('dragging');
+        if (draggedCanvasElement === wrapper) draggedCanvasElement = null;
     });
     
     // Allow drop on this element (to add new components after it)
@@ -1373,7 +1530,19 @@ function setupCanvasElementInteraction(wrapper) {
         artboard?.classList.remove('drag-over');
         
         const componentType = e.dataTransfer.getData('text/plain');
-        if (!componentType || componentType === 'move') return;
+        if (!componentType) return;
+        
+        if (componentType === 'move') {
+            if (!draggedCanvasElement || draggedCanvasElement === wrapper) return;
+            wrapper.parentNode.insertBefore(draggedCanvasElement, wrapper.nextSibling);
+            selectElement(draggedCanvasElement);
+            updateLayersPanel();
+            updateGeneratedCode();
+            markCanvasChanged();
+            draggedCanvasElement.classList.remove('dragging');
+            draggedCanvasElement = null;
+            return;
+        }
         
         // Create and insert after this element
         const element = createCanvasElement(componentType);
@@ -1442,48 +1611,81 @@ function enableInlineEditing(element) {
 
 // Save canvas state to project files
 async function saveCanvasToProject() {
-    if (!state.projectPath) return;
+    if (!state.projectPath) {
+        console.log('No project path set');
+        return;
+    }
     
     const artboard = document.getElementById('canvas-artboard');
-    if (!artboard) return;
+    if (!artboard) {
+        console.log('No artboard found');
+        return;
+    }
     
     const elements = artboard.querySelectorAll('.canvas-element');
+    
+    if (elements.length === 0) {
+        console.log('No elements in canvas');
+        return;
+    }
     
     // Generate HTML by extracting actual content from canvas elements
     let bodyContent = '';
     elements.forEach(el => {
-        // Get the actual HTML inside the canvas element (skip wrapper div)
-        const innerContent = el.innerHTML;
-        // Clean up the HTML - remove canvas-specific classes and styles
-        const cleanedHtml = cleanCanvasHtml(innerContent);
-        bodyContent += cleanedHtml + '\n    ';
+        // Clone the element to avoid modifying the original
+        const clone = el.cloneNode(true);
+        
+        // Remove resize handles and other editor elements
+        clone.querySelectorAll('.resize-handle, .canvas-drop-zone, .drop-indicator').forEach(h => h.remove());
+        
+        // Get the inner HTML
+        let innerContent = clone.innerHTML;
+        
+        // Clean up the HTML
+        innerContent = cleanCanvasHtml(innerContent);
+        
+        if (innerContent.trim()) {
+            bodyContent += '    ' + innerContent.trim() + '\n';
+        }
     });
     
     // Build full HTML with CSS link
-    const html = generateFullHtmlWithStyles(bodyContent);
+    const html = generateFullHtmlWithStyles(bodyContent.trim());
     
     // Save to index.html
     try {
-        await invoke('write_file_content', {
+        const result = await invoke('write_file_content', {
             path: state.projectPath + '\\index.html',
             content: html
         });
-        console.log('Canvas saved to index.html');
+        console.log('Canvas saved to index.html:', result);
         // Refresh preview after saving
-        refreshPreview();
+        await refreshPreview();
     } catch (error) {
         console.error('Error saving canvas:', error);
+        showToast('Error al guardar: ' + error, 'error');
     }
 }
 
 // Clean HTML from canvas-specific attributes
 function cleanCanvasHtml(html) {
+    let cleaned = html;
+    
     // Remove contenteditable attributes
-    let cleaned = html.replace(/\s*contenteditable="[^"]*"/gi, '');
-    // Remove outline styles added during editing
-    cleaned = cleaned.replace(/\s*style="[^"]*outline[^"]*"/gi, '');
+    cleaned = cleaned.replace(/\s*contenteditable="[^"]*"/gi, '');
     // Remove draggable attributes
     cleaned = cleaned.replace(/\s*draggable="[^"]*"/gi, '');
+    // Remove data-type attributes
+    cleaned = cleaned.replace(/\s*data-type="[^"]*"/gi, '');
+    // Remove canvas-element class
+    cleaned = cleaned.replace(/\s*class="canvas-element[^"]*"/gi, '');
+    // Remove empty class attributes
+    cleaned = cleaned.replace(/\s*class=""/gi, '');
+    // Remove inline styles with outline
+    cleaned = cleaned.replace(/\s*style="[^"]*outline[^"]*"/gi, '');
+    // Remove empty style attributes
+    cleaned = cleaned.replace(/\s*style=""/gi, '');
+    
     return cleaned;
 }
 
@@ -1502,6 +1704,242 @@ function generateFullHtmlWithStyles(bodyContent) {
     <script src="js/main.js"></script>
 </body>
 </html>`;
+}
+
+// ==================== LAYERS PANEL ====================
+let canvasChanged = false;
+
+function setupLayersPanel() {
+    // Layer action buttons
+    document.getElementById('btn-delete-layer')?.addEventListener('click', deleteSelectedLayer);
+    document.getElementById('btn-duplicate-layer')?.addEventListener('click', duplicateSelectedLayer);
+    document.getElementById('btn-layer-up')?.addEventListener('click', moveLayerUp);
+    document.getElementById('btn-layer-down')?.addEventListener('click', moveLayerDown);
+    
+    // Initial update
+    updateLayersPanel();
+}
+
+function updateLayersPanel() {
+    const layersList = document.getElementById('layers-list');
+    if (!layersList) return;
+    
+    const artboard = document.getElementById('canvas-artboard');
+    const elements = artboard?.querySelectorAll('.canvas-element') || [];
+    
+    if (elements.length === 0) {
+        layersList.innerHTML = `
+            <div class="no-layers">
+                <i class="fas fa-layer-group"></i>
+                <p>Arrastra componentes para crear capas</p>
+            </div>
+        `;
+        return;
+    }
+    
+    layersList.innerHTML = '';
+    
+    // Create layer items (reverse order - top layers first)
+    const elementsArray = Array.from(elements).reverse();
+    elementsArray.forEach((el, index) => {
+        const type = el.dataset.type || 'element';
+        const layerItem = document.createElement('div');
+        layerItem.className = 'layer-item';
+        if (el === selectedElement) {
+            layerItem.classList.add('selected');
+        }
+        if (el.style.display === 'none') {
+            layerItem.classList.add('hidden-layer');
+        }
+        
+        const icon = getLayerIcon(type);
+        const name = getLayerName(el, type);
+        
+        layerItem.innerHTML = `
+            <div class="layer-icon"><i class="${icon}"></i></div>
+            <div class="layer-name">${name}</div>
+            <div class="layer-visibility" title="Mostrar/Ocultar">
+                <i class="fas ${el.style.display === 'none' ? 'fa-eye-slash' : 'fa-eye'}"></i>
+            </div>
+        `;
+        
+        // Click to select
+        layerItem.addEventListener('click', (e) => {
+            if (!e.target.closest('.layer-visibility')) {
+                selectElement(el);
+                updateLayersPanel();
+            }
+        });
+        
+        // Toggle visibility
+        layerItem.querySelector('.layer-visibility')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleLayerVisibility(el);
+        });
+        
+        layersList.appendChild(layerItem);
+    });
+}
+
+function getLayerIcon(type) {
+    const icons = {
+        'heading': 'fas fa-heading',
+        'heading2': 'fas fa-heading',
+        'paragraph': 'fas fa-paragraph',
+        'button': 'fas fa-hand-pointer',
+        'link': 'fas fa-link',
+        'div': 'fas fa-square',
+        'section': 'fas fa-layer-group',
+        'container': 'fas fa-box',
+        'row': 'fas fa-columns',
+        'grid': 'fas fa-th',
+        'navbar': 'fas fa-bars',
+        'hero': 'fas fa-star',
+        'card': 'fas fa-id-card',
+        'footer': 'fas fa-shoe-prints',
+        'image': 'fas fa-image',
+        'video': 'fas fa-video',
+        'input': 'fas fa-i-cursor',
+        'textarea': 'fas fa-align-left',
+        'select': 'fas fa-caret-square-down',
+        'checkbox': 'fas fa-check-square',
+        'icon': 'fas fa-icons'
+    };
+    return icons[type] || 'fas fa-cube';
+}
+
+function getLayerName(element, type) {
+    // Try to get text content for naming
+    const textEl = element.querySelector('h1, h2, h3, h4, p, span, a, button');
+    if (textEl && textEl.textContent.trim()) {
+        const text = textEl.textContent.trim();
+        return text.length > 20 ? text.substring(0, 20) + '...' : text;
+    }
+    
+    const names = {
+        'heading': 'Título H1',
+        'heading2': 'Título H2',
+        'paragraph': 'Párrafo',
+        'button': 'Botón',
+        'link': 'Enlace',
+        'div': 'Div',
+        'section': 'Sección',
+        'container': 'Container',
+        'row': 'Row',
+        'grid': 'Grid',
+        'navbar': 'Navbar',
+        'hero': 'Hero Section',
+        'card': 'Card',
+        'footer': 'Footer',
+        'image': 'Imagen',
+        'video': 'Video',
+        'input': 'Input',
+        'textarea': 'Textarea',
+        'select': 'Select',
+        'checkbox': 'Checkbox',
+        'icon': 'Icono'
+    };
+    return names[type] || 'Elemento';
+}
+
+function toggleLayerVisibility(element) {
+    if (element.style.display === 'none') {
+        element.style.display = '';
+    } else {
+        element.style.display = 'none';
+    }
+    updateLayersPanel();
+    markCanvasChanged();
+}
+
+function deleteSelectedLayer() {
+    if (!selectedElement) {
+        showToast('Selecciona una capa primero', 'warning');
+        return;
+    }
+    
+    selectedElement.remove();
+    selectedElement = null;
+    updateLayersPanel();
+    updateGeneratedCode();
+    markCanvasChanged();
+    showToast('Capa eliminada', 'success');
+}
+
+function duplicateSelectedLayer() {
+    if (!selectedElement) {
+        showToast('Selecciona una capa primero', 'warning');
+        return;
+    }
+    
+    const clone = selectedElement.cloneNode(true);
+    clone.classList.remove('selected');
+    setupCanvasElementInteraction(clone);
+    selectedElement.parentNode.insertBefore(clone, selectedElement.nextSibling);
+    selectElement(clone);
+    updateLayersPanel();
+    updateGeneratedCode();
+    markCanvasChanged();
+    showToast('Capa duplicada', 'success');
+}
+
+function moveLayerUp() {
+    if (!selectedElement) {
+        showToast('Selecciona una capa primero', 'warning');
+        return;
+    }
+    
+    const prev = selectedElement.previousElementSibling;
+    if (prev && !prev.classList.contains('drop-hint')) {
+        selectedElement.parentNode.insertBefore(selectedElement, prev);
+        updateLayersPanel();
+        markCanvasChanged();
+    }
+}
+
+function moveLayerDown() {
+    if (!selectedElement) {
+        showToast('Selecciona una capa primero', 'warning');
+        return;
+    }
+    
+    const next = selectedElement.nextElementSibling;
+    if (next) {
+        selectedElement.parentNode.insertBefore(next, selectedElement);
+        updateLayersPanel();
+        markCanvasChanged();
+    }
+}
+
+function markCanvasChanged() {
+    canvasChanged = true;
+}
+
+// ==================== AUTO SYNC ====================
+function setupAutoSync() {
+    // Auto-save every 2 seconds if changes detected
+    setInterval(async () => {
+        if (canvasChanged && state.projectPath) {
+            canvasChanged = false;
+            await saveCanvasToProject();
+            console.log('Auto-saved canvas changes');
+        }
+    }, 2000);
+    
+    // Also observe canvas for mutations
+    const artboard = document.getElementById('canvas-artboard');
+    if (artboard) {
+        const observer = new MutationObserver(() => {
+            markCanvasChanged();
+            updateLayersPanel();
+        });
+        observer.observe(artboard, { 
+            childList: true, 
+            subtree: true, 
+            characterData: true,
+            attributes: true 
+        });
+    }
 }
 
 function generateElementHtml(element, type) {
@@ -1591,6 +2029,9 @@ function selectElement(element) {
     selectedElement = element;
     element.classList.add('selected');
     
+    // Add resize handles
+    addResizeHandles(element);
+    
     // Show properties panel
     document.getElementById('properties-content')?.classList.add('hidden');
     document.getElementById('properties-sections')?.classList.remove('hidden');
@@ -1600,9 +2041,94 @@ function selectElement(element) {
     
     // Update generated code if code panel is visible
     updateGeneratedCode();
+    
+    // Update layers panel
+    updateLayersPanel();
 }
 
-// Generate HTML code from canvas elements
+// Add resize handles to selected element
+function addResizeHandles(element) {
+    // Remove existing handles
+    element.querySelectorAll('.resize-handle').forEach(h => h.remove());
+    
+    // Create 8 handles (corners + edges)
+    const positions = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
+    positions.forEach(pos => {
+        const handle = document.createElement('div');
+        handle.className = `resize-handle ${pos}`;
+        handle.addEventListener('mousedown', (e) => startResize(e, pos));
+        element.appendChild(handle);
+    });
+}
+
+// Remove resize handles
+function removeResizeHandles(element) {
+    element?.querySelectorAll('.resize-handle').forEach(h => h.remove());
+}
+
+// Resize functionality
+let isResizing = false;
+let resizeDirection = '';
+let startX, startY, startWidth, startHeight, startLeft, startTop;
+
+function startResize(e, direction) {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    if (!selectedElement) return;
+    
+    isResizing = true;
+    resizeDirection = direction;
+    startX = e.clientX;
+    startY = e.clientY;
+    
+    const rect = selectedElement.getBoundingClientRect();
+    startWidth = rect.width;
+    startHeight = rect.height;
+    startLeft = selectedElement.offsetLeft;
+    startTop = selectedElement.offsetTop;
+    
+    document.addEventListener('mousemove', doResize);
+    document.addEventListener('mouseup', stopResize);
+}
+
+function doResize(e) {
+    if (!isResizing || !selectedElement) return;
+    
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    
+    let newWidth = startWidth;
+    let newHeight = startHeight;
+    
+    // Calculate new dimensions based on direction
+    if (resizeDirection.includes('e')) newWidth = startWidth + dx;
+    if (resizeDirection.includes('w')) newWidth = startWidth - dx;
+    if (resizeDirection.includes('s')) newHeight = startHeight + dy;
+    if (resizeDirection.includes('n')) newHeight = startHeight - dy;
+    
+    // Apply minimum size
+    newWidth = Math.max(50, newWidth);
+    newHeight = Math.max(20, newHeight);
+    
+    // Apply new size
+    selectedElement.style.width = newWidth + 'px';
+    selectedElement.style.height = newHeight + 'px';
+    
+    // Update properties panel
+    document.getElementById('prop-width').value = Math.round(newWidth);
+    document.getElementById('prop-height').value = Math.round(newHeight);
+    
+    markCanvasChanged();
+}
+
+function stopResize() {
+    isResizing = false;
+    document.removeEventListener('mousemove', doResize);
+    document.removeEventListener('mouseup', stopResize);
+}
+
+// Generate code from canvas elements - supports multiple frameworks
 function updateGeneratedCode() {
     const artboard = document.getElementById('canvas-artboard');
     const codeEl = document.getElementById('generated-html-code');
@@ -1615,6 +2141,30 @@ function updateGeneratedCode() {
         return;
     }
     
+    // Get framework from project state
+    const framework = state.framework || 'vanilla';
+    
+    let code = '';
+    
+    switch (framework) {
+        case 'react':
+            code = generateReactCode(elements);
+            break;
+        case 'vue':
+            code = generateVueCode(elements);
+            break;
+        case 'svelte':
+            code = generateSvelteCode(elements);
+            break;
+        default:
+            code = generateVanillaCode(elements);
+    }
+    
+    codeEl.textContent = code;
+}
+
+// Generate vanilla HTML code
+function generateVanillaCode(elements) {
     let html = '<!DOCTYPE html>\n<html lang="es">\n<head>\n';
     html += '    <meta charset="UTF-8">\n';
     html += '    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n';
@@ -1623,16 +2173,91 @@ function updateGeneratedCode() {
     html += '</head>\n<body>\n';
     
     elements.forEach(el => {
-        const type = el.dataset.type;
-        const innerHtml = el.innerHTML;
-        html += '    ' + generateCleanHtml(type, innerHtml) + '\n';
+        html += '    ' + extractCleanHtml(el) + '\n';
     });
     
     html += '    <script src="js/main.js"></script>\n';
     html += '</body>\n</html>';
     
-    // Escape HTML for display
-    codeEl.textContent = html;
+    return html;
+}
+
+// Generate React JSX code
+function generateReactCode(elements) {
+    let jsx = `import React from 'react';\nimport './styles.css';\n\n`;
+    jsx += `function App() {\n  return (\n    <div className="app">\n`;
+    
+    elements.forEach(el => {
+        jsx += '      ' + convertToJsx(extractCleanHtml(el)) + '\n';
+    });
+    
+    jsx += `    </div>\n  );\n}\n\nexport default App;`;
+    return jsx;
+}
+
+// Generate Vue SFC code
+function generateVueCode(elements) {
+    let vue = `<template>\n  <div class="app">\n`;
+    
+    elements.forEach(el => {
+        vue += '    ' + extractCleanHtml(el) + '\n';
+    });
+    
+    vue += `  </div>\n</template>\n\n`;
+    vue += `<script setup>\n// Component logic here\n</script>\n\n`;
+    vue += `<style scoped>\n@import './styles.css';\n</style>`;
+    
+    return vue;
+}
+
+// Generate Svelte code
+function generateSvelteCode(elements) {
+    let svelte = `<script>\n  // Component logic here\n</script>\n\n`;
+    svelte += `<div class="app">\n`;
+    
+    elements.forEach(el => {
+        svelte += '  ' + extractCleanHtml(el) + '\n';
+    });
+    
+    svelte += `</div>\n\n`;
+    svelte += `<style>\n  @import './styles.css';\n</style>`;
+    
+    return svelte;
+}
+
+// Extract clean HTML from canvas element
+function extractCleanHtml(element) {
+    // Clone the element to avoid modifying the original
+    const clone = element.cloneNode(true);
+    
+    // Remove canvas-specific elements
+    clone.querySelectorAll('.resize-handle, .canvas-drop-zone, .drop-indicator').forEach(el => el.remove());
+    
+    // Get the inner HTML and clean it
+    let html = clone.innerHTML;
+    
+    // Remove canvas-specific attributes
+    html = html.replace(/\s*(contenteditable|draggable)="[^"]*"/g, '');
+    html = html.replace(/\s*data-type="[^"]*"/g, '');
+    html = html.replace(/\s*class="canvas-element[^"]*"/g, '');
+    html = html.replace(/\s*style="[^"]*outline[^"]*"/g, '');
+    
+    // Clean up empty attributes
+    html = html.replace(/\s*class=""/g, '');
+    html = html.replace(/\s*style=""/g, '');
+    
+    return html.trim();
+}
+
+// Convert HTML to JSX (for React)
+function convertToJsx(html) {
+    return html
+        .replace(/class=/g, 'className=')
+        .replace(/for=/g, 'htmlFor=')
+        .replace(/tabindex=/g, 'tabIndex=')
+        .replace(/onclick=/g, 'onClick=')
+        .replace(/onchange=/g, 'onChange=')
+        .replace(/<!--[\s\S]*?-->/g, '{/* $& */}');
 }
 
 function generateCleanHtml(type, content) {
@@ -1748,6 +2373,7 @@ function escapeHtmlForDisplay(str) {
 function deselectAll() {
     document.querySelectorAll('.canvas-element.selected').forEach(el => {
         el.classList.remove('selected');
+        removeResizeHandles(el);
     });
     selectedElement = null;
     
@@ -2184,4 +2810,117 @@ function setupPropertyHandlers() {
             selectedElement.style.fontWeight = e.target.value;
         }
     });
+    
+    // Display
+    document.getElementById('prop-display')?.addEventListener('change', (e) => {
+        if (selectedElement) {
+            selectedElement.style.display = e.target.value;
+            // Show/hide flex options
+            const flexOptions = document.getElementById('flex-options');
+            if (flexOptions) {
+                flexOptions.classList.toggle('visible', e.target.value === 'flex' || e.target.value === 'grid');
+            }
+            markCanvasChanged();
+        }
+    });
+    
+    // Justify content
+    document.getElementById('prop-justify')?.addEventListener('change', (e) => {
+        if (selectedElement) {
+            selectedElement.style.justifyContent = e.target.value;
+            markCanvasChanged();
+        }
+    });
+    
+    // Align items
+    document.getElementById('prop-align')?.addEventListener('change', (e) => {
+        if (selectedElement) {
+            selectedElement.style.alignItems = e.target.value;
+            markCanvasChanged();
+        }
+    });
+    
+    // Gap
+    document.getElementById('prop-gap')?.addEventListener('input', (e) => {
+        if (selectedElement) {
+            selectedElement.style.gap = e.target.value + 'px';
+            markCanvasChanged();
+        }
+    });
+    
+    // Flex direction
+    document.getElementById('prop-flex-direction')?.addEventListener('change', (e) => {
+        if (selectedElement) {
+            selectedElement.style.flexDirection = e.target.value;
+            markCanvasChanged();
+        }
+    });
+    
+    // Opacity
+    document.getElementById('prop-opacity')?.addEventListener('input', (e) => {
+        if (selectedElement) {
+            selectedElement.style.opacity = e.target.value / 100;
+            document.getElementById('prop-opacity-value').textContent = e.target.value + '%';
+            markCanvasChanged();
+        }
+    });
+    
+    // Shadow
+    document.getElementById('prop-shadow')?.addEventListener('change', (e) => {
+        if (selectedElement) {
+            selectedElement.style.boxShadow = e.target.value;
+            markCanvasChanged();
+        }
+    });
+    
+    // Text alignment buttons
+    document.querySelectorAll('.align-btn[data-align]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (selectedElement) {
+                document.querySelectorAll('.align-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedElement.style.textAlign = btn.dataset.align;
+                markCanvasChanged();
+            }
+        });
+    });
+    
+    // Line height
+    document.getElementById('prop-line-height')?.addEventListener('input', (e) => {
+        if (selectedElement) {
+            selectedElement.style.lineHeight = e.target.value;
+            markCanvasChanged();
+        }
+    });
+    
+    // Letter spacing
+    document.getElementById('prop-letter-spacing')?.addEventListener('input', (e) => {
+        if (selectedElement) {
+            selectedElement.style.letterSpacing = e.target.value + 'px';
+            markCanvasChanged();
+        }
+    });
+    
+    // Border width
+    document.getElementById('prop-border-width')?.addEventListener('input', (e) => {
+        if (selectedElement) {
+            selectedElement.style.borderWidth = e.target.value + 'px';
+            selectedElement.style.borderStyle = 'solid';
+            markCanvasChanged();
+        }
+    });
+    
+    // Border color
+    document.getElementById('prop-border-color')?.addEventListener('input', (e) => {
+        if (selectedElement) {
+            selectedElement.style.borderColor = e.target.value;
+            markCanvasChanged();
+        }
+    });
+    
+    // Delete element button
+    document.getElementById('btn-delete-element')?.addEventListener('click', deleteSelectedLayer);
+    
+    // Duplicate element button
+    document.getElementById('btn-duplicate-element')?.addEventListener('click', duplicateSelectedLayer);
 }
